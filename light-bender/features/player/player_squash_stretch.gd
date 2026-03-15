@@ -2,8 +2,8 @@ extends Node
 
 @export_group("Squash & Stretch")
 @export var fall_stretch_amount: float = 0.4
-@export var squash_amount: float = 2.0
-@export var jump_squash_amount: float = 0.3
+@export var squash_amount: float = 1.2
+@export var jump_squash_amount: float = 0.7
 @export var recovery_speed: float = 10.0
 
 var _character_body: CharacterBody2D

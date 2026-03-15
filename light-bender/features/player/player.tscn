@@ -20,4 +20,5 @@ shape = SubResource("CapsuleShape2D_fcb3x")
 
 [node name="SquashStretch" type="Node" parent="." unique_id=1382942515]
 script = ExtResource("3_squash")
-jump_squash_amount = 0.5
+squash_amount = 1.2
+jump_squash_amount = 0.7
