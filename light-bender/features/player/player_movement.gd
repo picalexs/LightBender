@@ -22,7 +22,6 @@ extends CharacterBody2D
 @export_group("Jump Feel")
 @export var jump_hang_threshold: float = 50.0
 @export var jump_hang_accel_mult: float = 1.1
-@export var jump_hang_speed_mult: float = 1.3
 @export var jump_hang_gravity_mult: float = 0.5
 
 # ── Gravity ───────────────────────────────────────────────────────────────────
@@ -99,6 +98,10 @@ func _try_jump() -> void:
 	_is_jumping = true
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	# No release event will come, so apply the cut right now.
+	if not Input.is_action_pressed("ui_accept"):
+		velocity.y *= jump_cut_mult
+		_is_jumping = false
 
 
 # Physics-based acceleration / deceleration with optional momentum conservation and friction.
@@ -110,12 +113,15 @@ func _apply_movement(delta: float, on_floor: bool) -> void:
 	if on_floor:
 		accel_rate = acceleration if absf(target_speed) > 0.01 else deceleration
 	else:
-		accel_rate = (acceleration * accel_in_air) if absf(target_speed) > 0.01 else (deceleration * decel_in_air)
-
-	# At the apex: widen the effective movement window
+		if absf(target_speed) > 0.01:
+			accel_rate = acceleration * accel_in_air
+		else:
+			accel_rate = deceleration * decel_in_air
+	
+	# At the apex: snappier acceleration only — no speed-target boost to avoid
+	# the apex multiplier locking in a higher speed via momentum conservation.
 	if _is_jumping and absf(velocity.y) < jump_hang_threshold:
 		accel_rate *= jump_hang_accel_mult
-		target_speed *= jump_hang_speed_mult
 
 	# Preserve speed when already moving faster than input in the same direction (air only)
 	if conserve_momentum \
@@ -125,8 +131,10 @@ func _apply_movement(delta: float, on_floor: bool) -> void:
 			and absf(target_speed) > 0.01:
 		accel_rate = 0.0
 
+	# Raw Euler (velocity.x += step * delta) overshoots when accel_rate * delta > 1.
 	var speed_dif := target_speed - velocity.x
-	velocity.x += pow(absf(speed_dif) * accel_rate, velocity_power) * signf(speed_dif) * delta
+	var step := pow(absf(speed_dif) * accel_rate, velocity_power) * delta
+	velocity.x = move_toward(velocity.x, target_speed, step)
 
 	# Ground friction when idle
 	if on_floor and absf(dir) < 0.01:
