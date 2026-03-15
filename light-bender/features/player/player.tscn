@@ -8,6 +8,9 @@ radius = 40.0
 
 [node name="Player" type="CharacterBody2D" unique_id=640300134]
 script = ExtResource("1_fcb3x")
+friction = 8.0
+jump_force = 900.0
+jump_hang_speed_mult = 1.2
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=496765949]
 scale = Vector2(5, 5)
