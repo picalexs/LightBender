@@ -2,35 +2,35 @@ extends CharacterBody2D
 
 # ── Movement ──────────────────────────────────────────────────────────────────
 @export_group("Movement")
-@export var move_speed: float = 500.0
-@export var acceleration: float = 80.0
-@export var deceleration: float = 100.0
-@export var accel_in_air: float = 0.65
+@export var move_speed: float = 160.0
+@export var acceleration: float = 18.0
+@export var deceleration: float = 26.0
+@export var accel_in_air: float = 0.5
 @export var decel_in_air: float = 0.65
 @export var velocity_power: float = 1.0
-@export var friction: float = 10.0
+@export var friction: float = 1.0
 @export var conserve_momentum: bool = true
 
 # ── Jump ──────────────────────────────────────────────────────────────────────
 @export_group("Jump")
-@export var jump_force: float = 600.0
-@export_range(0.0, 1.0) var jump_cut_mult: float = 0.45
+@export var jump_force: float = 300.0
+@export_range(0.0, 1.0) var jump_cut_mult: float = 0.15
 @export var coyote_time: float = 0.15
 @export var jump_buffer_time: float = 0.15
 
 # ── Apex Feel ─────────────────────────────────────────────────────────────────
 @export_group("Jump Feel")
-@export var jump_hang_threshold: float = 50.0
-@export var jump_hang_accel_mult: float = 1.1
-@export var jump_hang_gravity_mult: float = 0.5
+@export var jump_hang_threshold: float = 15.0
+@export var jump_hang_accel_mult: float = 4.0
+@export var jump_hang_gravity_mult: float = 0.3
 
 # ── Gravity ───────────────────────────────────────────────────────────────────
 @export_group("Gravity")
-@export var gravity_mult: float = 2.5
-@export var fall_gravity_mult: float = 1.5
-@export var fast_fall_gravity_mult: float = 2.0
-@export var max_fall_speed: float = 800.0
-@export var max_fast_fall_speed: float = 1200.0
+@export var gravity_mult: float = 1.0
+@export var fall_gravity_mult: float = 1.7
+@export var fast_fall_gravity_mult: float = 2.4
+@export var max_fall_speed: float = 240.0
+@export var max_fast_fall_speed: float = 400.0
 
 # ── Private state ─────────────────────────────────────────────────────────────
 var _facing_right: bool = true

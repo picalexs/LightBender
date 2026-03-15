@@ -3,8 +3,9 @@
 [ext_resource type="Script" uid="uid://begheutfsuq4x" path="res://features/player/player_movement.gd" id="1_fcb3x"]
 [ext_resource type="Texture2D" uid="uid://cmkse7w70kbym" path="res://assets/sprites/Player.png" id="2_fcb3x"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_emvbc"]
-radius = 40.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fcb3x"]
+radius = 7.9
+height = 15.8
 
 [node name="Player" type="CharacterBody2D" unique_id=640300134]
 script = ExtResource("1_fcb3x")
@@ -12,8 +13,8 @@ friction = 8.0
 jump_force = 800.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=496765949]
-scale = Vector2(5, 5)
 texture = ExtResource("2_fcb3x")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=280012028]
-shape = SubResource("CircleShape2D_emvbc")
+position = Vector2(0, 0.1)
+shape = SubResource("CapsuleShape2D_fcb3x")
