@@ -7,3 +7,4 @@ class_name PlayerAbilities
 @export var can_wall_jump: bool = true
 @export var can_wall_slide: bool = true
 @export var can_double_jump: bool = true
+@export var can_slow_fall: bool = true

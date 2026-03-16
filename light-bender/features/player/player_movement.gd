@@ -22,6 +22,11 @@ const DASH_ACTION := "dash"
 @export var max_air_jumps: int = 1
 @export var double_jump_force: float = 280.0
 
+# ── Slow Fall ────────────────────────────────────────────────────────────────
+@export_group("Slow Fall")
+@export var slow_fall_gravity_mult: float = 0.32
+@export var slow_fall_max_speed: float = 70.0
+
 # ── Apex Feel ─────────────────────────────────────────────────────────────────
 @export_group("Jump Feel")
 @export var jump_hang_threshold: float = 15.0
@@ -139,6 +144,9 @@ func _apply_gravity(delta: float, on_floor: bool) -> void:
 		if Input.is_action_pressed("ui_down"):
 			g_mult = gravity_mult * fast_fall_gravity_mult
 			velocity.y = minf(velocity.y, max_fast_fall_speed)
+		elif _can_slow_fall():
+			g_mult = gravity_mult * slow_fall_gravity_mult
+			velocity.y = minf(velocity.y, slow_fall_max_speed)
 		else:
 			g_mult = gravity_mult * fall_gravity_mult
 			velocity.y = minf(velocity.y, max_fall_speed)
@@ -284,6 +292,19 @@ func _can_double_jump() -> bool:
 	return _air_jumps_left > 0
 
 
+func _can_slow_fall() -> bool:
+	if abilities == null or not abilities.can_slow_fall:
+		return false
+	if is_on_floor() or _is_dashing() or velocity.y <= 0.0:
+		return false
+	# If double jump is available, require it to be consumed before slow-fall starts.
+	if abilities.can_double_jump and max_air_jumps > 0 and _air_jumps_left > 0:
+		return false
+	if _can_wall_slide():
+		return false
+	return Input.is_action_pressed("ui_accept")
+
+
 func _try_dash() -> void:
 	if abilities == null or not abilities.can_dash:
 		return
@@ -339,6 +360,11 @@ func set_wall_slide_enabled(enabled: bool) -> void:
 func set_double_jump_enabled(enabled: bool) -> void:
 	_ensure_abilities()
 	abilities.can_double_jump = enabled
+
+
+func set_slow_fall_enabled(enabled: bool) -> void:
+	_ensure_abilities()
+	abilities.can_slow_fall = enabled
 
 
 func _refill_air_jumps() -> void:

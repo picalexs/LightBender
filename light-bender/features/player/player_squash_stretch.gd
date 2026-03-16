@@ -2,6 +2,7 @@ extends Node
 
 @export_group("Squash & Stretch")
 @export var fall_stretch_amount: float = 0.4
+@export var stretch_min_fall_speed: float = 90.0
 @export var squash_amount: float = 1.2
 @export var jump_squash_amount: float = 0.7
 @export var recovery_speed: float = 10.0
@@ -47,7 +48,7 @@ func _physics_process(delta: float) -> void:
 	_landing_timer -= delta
 
 	if _landing_timer <= 0.0:
-		if fall_velocity > 0.0:
+		if fall_velocity > stretch_min_fall_speed:
 			var stretch: float = clamp(fall_velocity / 100.0 * fall_stretch_amount, 0.0, 0.4)
 			_target_scale.y = 1.0 + stretch
 			_target_scale.x = 1.0 - stretch * 0.4
