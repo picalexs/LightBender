@@ -51,6 +51,7 @@ const DASH_ACTION := "dash"
 @export var dash_duration: float = 0.16
 @export var dash_cooldown: float = 0.55
 @export var dash_zero_vertical_velocity: bool = true
+@export var dash_end_speed_mult: float = 0.6
 
 # ── Wall Movement ─────────────────────────────────────────────────────────────
 @export_group("Wall Movement")
@@ -72,6 +73,7 @@ var _dash_direction: Vector2 = Vector2.ZERO
 var _wall_jump_lock_timer: float = 0.0
 var _wall_normal: Vector2 = Vector2.ZERO
 var _air_jumps_left: int = 0
+var _slow_fall_armed: bool = false
 
 @onready var _sprite: Sprite2D = $Sprite2D
 
@@ -89,18 +91,25 @@ func _ensure_abilities() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept"):
 		_jump_buffer_timer = jump_buffer_time
+		if _can_arm_slow_fall_on_jump_press():
+			_slow_fall_armed = true
 	if event.is_action_pressed(DASH_ACTION):
 		_try_dash()
 	elif event.is_action_released("ui_accept") and _is_jumping and velocity.y < 0.0:
 		# Variable jump height: cut upward velocity on early release
 		velocity.y *= jump_cut_mult
 		_is_jumping = false
+	if event.is_action_released("ui_accept"):
+		_slow_fall_armed = false
 
 
 func _physics_process(delta: float) -> void:
+	var was_dashing := _is_dashing()
 	var on_floor := is_on_floor()
 	_tick_timers(delta, on_floor)
 	_refresh_wall_contact()
+	if was_dashing and not _is_dashing():
+		_apply_post_dash_velocity()
 
 	if _is_dashing():
 		velocity = _dash_direction * dash_speed
@@ -118,6 +127,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and velocity.y >= 0.0:
 		_is_jumping = false
 		_refill_air_jumps()
+		_slow_fall_armed = false
 
 
 # Counts down coyote window and jump buffer each frame; resets coyote on landing.
@@ -297,12 +307,24 @@ func _can_slow_fall() -> bool:
 		return false
 	if is_on_floor() or _is_dashing() or velocity.y <= 0.0:
 		return false
-	# If double jump is available, require it to be consumed before slow-fall starts.
-	if abilities.can_double_jump and max_air_jumps > 0 and _air_jumps_left > 0:
+	if not _slow_fall_armed:
 		return false
 	if _can_wall_slide():
 		return false
 	return Input.is_action_pressed("ui_accept")
+
+
+func _can_arm_slow_fall_on_jump_press() -> bool:
+	if abilities == null or not abilities.can_slow_fall:
+		return false
+	if is_on_floor() or _is_dashing():
+		return false
+	if _can_wall_slide():
+		return false
+	# If double jump exists, slow-fall can only be armed after it is spent.
+	if abilities.can_double_jump and max_air_jumps > 0 and _air_jumps_left > 0:
+		return false
+	return true
 
 
 func _try_dash() -> void:
@@ -326,6 +348,14 @@ func _try_dash() -> void:
 
 func _is_dashing() -> bool:
 	return _dash_timer > 0.0
+
+
+func _apply_post_dash_velocity() -> void:
+	var dir := Input.get_axis("ui_left", "ui_right")
+	if absf(dir) > 0.01:
+		velocity.x = dir * move_speed * dash_end_speed_mult
+	else:
+		velocity.x = 0.0
 
 
 func _refresh_wall_contact() -> void:

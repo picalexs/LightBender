@@ -8,6 +8,8 @@
 [node name="Player" parent="." unique_id=640300134 instance=ExtResource("2_tlesq")]
 double_jump_force = 290.0
 dash_speed = 280.0
+dash_duration = 0.2
+dash_end_speed_mult = 0.5
 wall_slide_speed = 40.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1806402793]
