@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://begheutfsuq4x" path="res://features/player/player_movement.gd" id="1_fcb3x"]
 [ext_resource type="Texture2D" uid="uid://cmkse7w70kbym" path="res://assets/sprites/Player.png" id="2_fcb3x"]
 [ext_resource type="Script" uid="uid://cjihek22ab843" path="res://features/player/player_squash_stretch.gd" id="3_squash"]
+[ext_resource type="Resource" path="res://features/player/default_player_abilities.tres" id="4_abilities"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fcb3x"]
 radius = 7.9
@@ -10,6 +11,7 @@ height = 15.8
 
 [node name="Player" type="CharacterBody2D" unique_id=640300134]
 script = ExtResource("1_fcb3x")
+abilities = ExtResource("4_abilities")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=496765949]
 texture = ExtResource("2_fcb3x")
