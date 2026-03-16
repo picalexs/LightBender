@@ -19,6 +19,8 @@ const DASH_ACTION := "dash"
 @export_range(0.0, 1.0) var jump_cut_mult: float = 0.15
 @export var coyote_time: float = 0.15
 @export var jump_buffer_time: float = 0.15
+@export var max_air_jumps: int = 1
+@export var double_jump_force: float = 280.0
 
 # ── Apex Feel ─────────────────────────────────────────────────────────────────
 @export_group("Jump Feel")
@@ -64,12 +66,14 @@ var _dash_cooldown_timer: float = 0.0
 var _dash_direction: Vector2 = Vector2.ZERO
 var _wall_jump_lock_timer: float = 0.0
 var _wall_normal: Vector2 = Vector2.ZERO
+var _air_jumps_left: int = 0
 
 @onready var _sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	_ensure_abilities()
+	_refill_air_jumps()
 
 
 func _ensure_abilities() -> void:
@@ -108,6 +112,7 @@ func _physics_process(delta: float) -> void:
 	_refresh_wall_contact()
 	if is_on_floor() and velocity.y >= 0.0:
 		_is_jumping = false
+		_refill_air_jumps()
 
 
 # Counts down coyote window and jump buffer each frame; resets coyote on landing.
@@ -153,6 +158,10 @@ func _try_jump() -> void:
 
 	if _can_wall_jump():
 		_do_wall_jump()
+		return
+
+	if _can_double_jump():
+		_do_double_jump()
 
 
 func _do_ground_jump() -> void:
@@ -177,6 +186,16 @@ func _do_wall_jump() -> void:
 	_wall_jump_lock_timer = wall_jump_lock_time
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+
+
+func _do_double_jump() -> void:
+	velocity.y = -double_jump_force
+	_is_jumping = true
+	_jump_buffer_timer = 0.0
+	_air_jumps_left = max(0, _air_jumps_left - 1)
+	if not Input.is_action_pressed("ui_accept"):
+		velocity.y *= jump_cut_mult
+		_is_jumping = false
 
 
 # Physics-based acceleration / deceleration with optional momentum conservation and friction.
@@ -257,6 +276,14 @@ func _can_wall_jump() -> bool:
 	return true
 
 
+func _can_double_jump() -> bool:
+	if abilities == null or not abilities.can_double_jump:
+		return false
+	if is_on_floor() or _is_dashing():
+		return false
+	return _air_jumps_left > 0
+
+
 func _try_dash() -> void:
 	if abilities == null or not abilities.can_dash:
 		return
@@ -307,6 +334,15 @@ func set_wall_jump_enabled(enabled: bool) -> void:
 func set_wall_slide_enabled(enabled: bool) -> void:
 	_ensure_abilities()
 	abilities.can_wall_slide = enabled
+
+
+func set_double_jump_enabled(enabled: bool) -> void:
+	_ensure_abilities()
+	abilities.can_double_jump = enabled
+
+
+func _refill_air_jumps() -> void:
+	_air_jumps_left = maxi(0, max_air_jumps)
 
 
 func _update_facing() -> void:
