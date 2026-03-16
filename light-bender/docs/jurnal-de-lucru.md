@@ -1,0 +1,92 @@
+# Light Bender — Dev Log
+
+## Initial Setup - 02.03.2024
+
+We started from a clean Godot 4 project. We set up `.gitignore`,
+`.gitattributes` and `.editorconfig` to keep things tidy from the start, then
+laid out the folder structure: `features/player`, `levels/test_room`, `assets`,
+`addons`, `docs`, `ui` — each in its place, even if they were empty for now.
+
+---
+
+## Test Scene and First Player - 15.03.2024
+
+The first version of the player came together quickly: a `CharacterBody2D` with
+a capsule `CollisionShape2D` and a basic movement script. Along with it came the
+test scene — `test_scene.tscn` — a simple sandbox where anything could be
+iterated on without breaking anything else.
+
+A few quick rounds of bug fixes and script improvements followed, mostly around
+physics and input feel.
+
+---
+
+## Sprite and Assets - 15.03.2024
+
+We create a simple player sprite in **Aseprite** (`Sprite-0001.aseprite`),
+exported as PNG and wired up directly in the scene.
+
+---
+
+## Tilemap - 15.03.2024
+
+A base tile was drawn in Aseprite (`Black-tile.aseprite`) alongside a tilemap
+template (`Template-tilemap.aseprite`). These produced `tile_map_layer.tscn` —
+the first working tilemap dropped into the test scene. The same commit also
+tightened up player controls: acceleration, deceleration, and air behaviour.
+
+---
+
+## Player Movement — `player_movement.gd` - 15.03.2024
+
+The movement script grew iteratively. Things that ended up in it:
+
+- **Responsive physics** — separate acceleration and deceleration on the ground
+  and in the air, momentum conservation, idle friction
+- **Variable jump height** — how high you jump depends on how long you hold the
+  button; releasing early cuts the upward velocity
+- **Coyote time** and **jump buffering** — small grace windows so jumping always
+  feels tight and responsive
+- **Apex hang** — reduced gravity and snappier acceleration at the top of the
+  jump arc, for a floaty feel at the peak
+
+---
+
+## Squash & Stretch — `player_squash_stretch.gd` - 15.03.2024
+
+A standalone script attached as a child node of the player, handling only the
+squash and stretch animation of the sprite. It takes care of:
+
+- Stretching vertically while falling (scales with speed)
+- Squashing on landing (scales with impact strength)
+- Narrowing on jump
+- Smoothly recovering to normal scale
+
+The script reads data directly from the parent `CharacterBody2D` with no
+external dependencies.
+
+---
+
+## Abilities — `PlayerAbilities` resource - 16.03.2024
+
+All abilities are driven by a dedicated `Resource` (`player_abilities.gd`) that
+can be assigned in the editor or swapped at runtime. This makes unlocking them
+later in the game easy to manage from anywhere.
+
+Abilities implemented so far:
+
+| Ability         | Description                                                              |
+| --------------- | ------------------------------------------------------------------------ |
+| **Dash**        | Quick horizontal burst with cooldown; speed snaps back to normal on exit |
+| **Wall slide**  | Slow descent on a wall while holding toward it                           |
+| **Wall jump**   | Jump off a wall, requires an explicit jump press                         |
+| **Double jump** | One extra jump while airborne                                            |
+| **Slow fall**   | Gentle descent activated by pressing jump mid-air and holding it         |
+
+Each ability also exposes a runtime toggle (`set_dash_enabled`,
+`set_double_jump_enabled`, etc.) so it can be enabled or disabled from any other
+script.
+
+How the game looks like right now:
+
+![alt text](images/game-16.03.26.png)
