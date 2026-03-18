@@ -2,8 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://cblm3tvfam28g" path="res://features/player/player.tscn" id="2_tlesq"]
 [ext_resource type="PackedScene" uid="uid://brtr2cyku4f44" path="res://assets/tilemaps/tile_map_layer.tscn" id="2_w6jdy"]
+[ext_resource type="PackedScene" path="res://features/transition/circle_transition.tscn" id="3_circle_transition"]
+[ext_resource type="Script" path="res://levels/test_room/test_scene_controller.gd" id="4_test_scene_controller"]
 
 [node name="test_scene" type="Node2D" unique_id=1872434068]
+script = ExtResource("4_test_scene_controller")
 
 [node name="Player" parent="." unique_id=640300134 instance=ExtResource("2_tlesq")]
 double_jump_force = 290.0
@@ -11,6 +14,9 @@ dash_speed = 280.0
 dash_duration = 0.2
 dash_end_speed_mult = 0.5
 wall_slide_speed = 40.0
+
+[node name="RespawnTransition" parent="." instance=ExtResource("3_circle_transition")]
+target_path = NodePath("../Player")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1806402793]
 position = Vector2(50, 0)
