@@ -52,6 +52,7 @@ const DASH_ACTION := "dash"
 @export var dash_cooldown: float = 0.55
 @export var dash_zero_vertical_velocity: bool = true
 @export var dash_end_speed_mult: float = 0.6
+@export var enable_dash_trail: bool = true
 
 # ── Wall Movement ─────────────────────────────────────────────────────────────
 @export_group("Wall Movement")
@@ -76,11 +77,13 @@ var _air_jumps_left: int = 0
 var _slow_fall_armed: bool = false
 
 @onready var _sprite: Sprite2D = $Sprite2D
+@onready var _trail_effect = get_node_or_null("TrailEffect")
 
 
 func _ready() -> void:
 	_ensure_abilities()
 	_refill_air_jumps()
+	_update_dash_trail_state()
 
 
 func _ensure_abilities() -> void:
@@ -110,6 +113,7 @@ func _physics_process(delta: float) -> void:
 	_refresh_wall_contact()
 	if was_dashing and not _is_dashing():
 		_apply_post_dash_velocity()
+	_update_dash_trail_state()
 
 	if _is_dashing():
 		velocity = _dash_direction * dash_speed
@@ -356,6 +360,21 @@ func _apply_post_dash_velocity() -> void:
 		velocity.x = dir * move_speed * dash_end_speed_mult
 	else:
 		velocity.x = 0.0
+
+
+func _update_dash_trail_state() -> void:
+	if _trail_effect == null:
+		return
+
+	if not enable_dash_trail:
+		_trail_effect.stop(false)
+		return
+
+	if _is_dashing():
+		if not _trail_effect.is_active():
+			_trail_effect.start()
+	elif _trail_effect.is_active():
+		_trail_effect.stop(false)
 
 
 func _refresh_wall_contact() -> void:
