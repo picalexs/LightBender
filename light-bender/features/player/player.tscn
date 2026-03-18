@@ -5,11 +5,11 @@
 [ext_resource type="Script" uid="uid://cjihek22ab843" path="res://features/player/player_squash_stretch.gd" id="3_squash"]
 [ext_resource type="Resource" uid="uid://c1uckhci4xe6g" path="res://features/player/default_player_abilities.tres" id="4_abilities"]
 [ext_resource type="Script" uid="uid://bumnp0p2qovap" path="res://features/effects/trail_effect.gd" id="5_trail"]
-[ext_resource type="Script" path="res://features/audio/sfx_emitter_2d.gd" id="6_sfx_emitter"]
-[ext_resource type="Script" path="res://features/audio/sfx_clip.gd" id="7_sfx_clip"]
-[ext_resource type="AudioStream" path="res://assets/audio/jump.wav" id="8_jump_sfx"]
-[ext_resource type="AudioStream" path="res://assets/audio/dash.wav" id="9_dash_sfx"]
-[ext_resource type="Script" path="res://features/audio/player_sfx_controller.gd" id="10_player_sfx_controller"]
+[ext_resource type="Script" uid="uid://qf78bcne6cy1" path="res://features/audio/sfx_emitter_2d.gd" id="6_sfx_emitter"]
+[ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="7_sfx_clip"]
+[ext_resource type="AudioStream" uid="uid://bfd5hk81lc2t5" path="res://assets/audio/jump.wav" id="8_jump_sfx"]
+[ext_resource type="AudioStream" uid="uid://bf6p51nsfvxn" path="res://assets/audio/dash.wav" id="9_dash_sfx"]
+[ext_resource type="Script" uid="uid://dtbahbfvrv3wf" path="res://features/audio/player_sfx_controller.gd" id="10_player_sfx_controller"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fcb3x"]
 radius = 7.9
@@ -34,12 +34,14 @@ retrigger_cooldown = 0.04
 [sub_resource type="Resource" id="SfxClip_double_jump"]
 script = ExtResource("7_sfx_clip")
 event_name = "double_jump"
+stream = ExtResource("8_jump_sfx")
 volume_db = -7.0
 pitch_randomness = 0.05
 
 [sub_resource type="Resource" id="SfxClip_wall_jump"]
 script = ExtResource("7_sfx_clip")
 event_name = "wall_jump"
+stream = ExtResource("8_jump_sfx")
 volume_db = -7.0
 
 [sub_resource type="Resource" id="SfxClip_wall_slide_loop"]
@@ -69,10 +71,10 @@ ghost_lifetime = 0.22
 max_ghosts = 16
 ghost_alpha = 0.3
 
-[node name="SfxEmitter" type="Node2D" parent="."]
+[node name="SfxEmitter" type="Node2D" parent="." unique_id=556102516]
 script = ExtResource("6_sfx_emitter")
 clips = [SubResource("SfxClip_jump"), SubResource("SfxClip_dash"), SubResource("SfxClip_double_jump"), SubResource("SfxClip_wall_jump"), SubResource("SfxClip_wall_slide_loop")]
 max_polyphony = 8
 
-[node name="PlayerSfxController" type="Node" parent="."]
+[node name="PlayerSfxController" type="Node" parent="." unique_id=1928668172]
 script = ExtResource("10_player_sfx_controller")

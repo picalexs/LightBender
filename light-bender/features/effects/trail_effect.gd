@@ -18,6 +18,7 @@ extends Node2D
 @export var ghost_alpha: float = 0.6
 @export var scale_fade: bool = true
 @export var auto_target_parent: bool = true
+@export var z_index_offset: int = -1
 
 # ── Internal state ────────────────────────────────────────────────────────────
 var _ghosts: Array = [] # Array of {sprite: Sprite2D, time_alive: float}
@@ -142,6 +143,8 @@ func _create_ghost_sprite() -> Sprite2D:
 		return null
 
 	ghost.top_level = true
+	ghost.z_as_relative = false
+	ghost.z_index = _get_effective_z_index(sprite_resource) + z_index_offset
 	ghost.self_modulate = ghost_tint
 	ghost.self_modulate.a = ghost_alpha
 	ghost.global_position = sprite_resource.global_position
@@ -239,3 +242,19 @@ func _is_target_valid() -> bool:
 
 func _is_sprite_valid() -> bool:
 	return sprite_resource != null and is_instance_valid(sprite_resource)
+
+
+func _get_effective_z_index(canvas_item: CanvasItem) -> int:
+	var z_total = canvas_item.z_index
+	if not canvas_item.z_as_relative:
+		return z_total
+
+	var parent = canvas_item.get_parent()
+	while parent is CanvasItem:
+		var parent_item = parent as CanvasItem
+		z_total += parent_item.z_index
+		if not parent_item.z_as_relative:
+			break
+		parent = parent_item.get_parent()
+
+	return z_total

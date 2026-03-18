@@ -90,3 +90,34 @@ script.
 How the game looks like right now:
 
 ![alt text](images/game-16.03.26.png)
+
+---
+
+## First Trail Effect and SFX System - 18.03.2026
+
+We added a visible dash trail and a dedicated sound-effects pipeline for the
+player.
+
+The trail effect is now part of the player flow: it spawns afterimages during
+dash and fades them out smoothly after dash ends.
+
+The SFX setup was introduced as a modular event-based system:
+
+- `SfxClip` resources define sound events as data
+- `SfxEmitter2D` handles pooled playback, cooldowns, and looped sounds
+- `PlayerSfxController` listens to movement signals and maps gameplay actions to
+  sound events
+- `player_movement.gd` emits gameplay signals (`jump_performed`,
+  `dash_performed`, `wall_slide_state_changed`) and no longer carries SFX
+  orchestration
+
+Sounds connected in this first version:
+
+- Jump
+- Dash
+- Wall Jump (place holder)
+- Double Jump (place holder)
+
+Event slots prepared for next additions:
+
+- Wall slide loop
