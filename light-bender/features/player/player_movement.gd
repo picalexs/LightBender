@@ -2,6 +2,10 @@ extends CharacterBody2D
 
 const DASH_ACTION := "dash"
 
+signal jump_performed(kind: StringName)
+signal dash_performed
+signal wall_slide_state_changed(is_sliding: bool)
+
 # ── Movement ──────────────────────────────────────────────────────────────────
 @export_group("Movement")
 @export var move_speed: float = 160.0
@@ -75,6 +79,7 @@ var _wall_jump_lock_timer: float = 0.0
 var _wall_normal: Vector2 = Vector2.ZERO
 var _air_jumps_left: int = 0
 var _slow_fall_armed: bool = false
+var _was_wall_sliding: bool = false
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _trail_effect = get_node_or_null("TrailEffect")
@@ -116,6 +121,7 @@ func _physics_process(delta: float) -> void:
 	_update_dash_trail_state()
 
 	if _is_dashing():
+		_emit_wall_slide_state(false)
 		velocity = _dash_direction * dash_speed
 		move_and_slide()
 		_refresh_wall_contact()
@@ -128,6 +134,7 @@ func _physics_process(delta: float) -> void:
 	_update_facing()
 	move_and_slide()
 	_refresh_wall_contact()
+	_emit_wall_slide_state(_is_wall_sliding_now())
 	if is_on_floor() and velocity.y >= 0.0:
 		_is_jumping = false
 		_refill_air_jumps()
@@ -191,6 +198,7 @@ func _do_ground_jump() -> void:
 	_is_jumping = true
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	jump_performed.emit(&"ground")
 	# No release event will come, so apply the cut right now.
 	if not Input.is_action_pressed("ui_accept"):
 		velocity.y *= jump_cut_mult
@@ -208,6 +216,7 @@ func _do_wall_jump() -> void:
 	_wall_jump_lock_timer = wall_jump_lock_time
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	jump_performed.emit(&"wall")
 
 
 func _do_double_jump() -> void:
@@ -215,6 +224,7 @@ func _do_double_jump() -> void:
 	_is_jumping = true
 	_jump_buffer_timer = 0.0
 	_air_jumps_left = max(0, _air_jumps_left - 1)
+	jump_performed.emit(&"double")
 	if not Input.is_action_pressed("ui_accept"):
 		velocity.y *= jump_cut_mult
 		_is_jumping = false
@@ -346,6 +356,7 @@ func _try_dash() -> void:
 	_dash_timer = dash_duration
 	_dash_cooldown_timer = dash_cooldown
 	_wall_jump_lock_timer = 0.0
+	dash_performed.emit()
 	if dash_zero_vertical_velocity:
 		velocity.y = 0.0
 
@@ -375,6 +386,23 @@ func _update_dash_trail_state() -> void:
 			_trail_effect.start()
 	elif _trail_effect.is_active():
 		_trail_effect.stop(false)
+
+
+func _is_wall_sliding_now() -> bool:
+	if _is_dashing():
+		return false
+	if is_on_floor():
+		return false
+	if not _can_wall_slide():
+		return false
+	return velocity.y > 0.0
+
+
+func _emit_wall_slide_state(is_wall_sliding: bool) -> void:
+	if is_wall_sliding == _was_wall_sliding:
+		return
+	_was_wall_sliding = is_wall_sliding
+	wall_slide_state_changed.emit(is_wall_sliding)
 
 
 func _refresh_wall_contact() -> void:
