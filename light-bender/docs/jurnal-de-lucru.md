@@ -121,3 +121,23 @@ Sounds connected in this first version:
 Event slots prepared for next additions:
 
 - Wall slide loop
+
+---
+
+## Light Mechanic - 19.03.2026
+
+We added the core light mechanic to the test room, and this features our main
+core mechanic: what is in light exists, what is in dark does not. The player
+will gain abailities to influence this as well.
+
+The setup is pretty simple, but it unlocked a lot:
+
+- `DarkManager` now drops a full dark overlay over the scene
+- `LightZone` was added as a reusable scene, with one polygon driving both the
+  visible light cutout and the trigger area
+- the player now keeps track of how many light zones it is inside, so floor
+  collision only stays active while standing in light
+- the test scene got multiple light zones, and some of them are animated with
+  `AnimationPlayer` so the safe areas actually move around
+
+![alt text](images/light-19.03.26.png)
