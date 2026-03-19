@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="7_sfx_clip"]
 [ext_resource type="AudioStream" uid="uid://bfd5hk81lc2t5" path="res://assets/audio/jump.wav" id="8_jump_sfx"]
 [ext_resource type="AudioStream" uid="uid://bf6p51nsfvxn" path="res://assets/audio/dash.wav" id="9_dash_sfx"]
-[ext_resource type="Script" uid="uid://dtbahbfvrv3wf" path="res://features/audio/player_sfx_controller.gd" id="10_player_sfx_controller"]
+[ext_resource type="Script" path="res://features/audio/player_sfx_controller.gd" id="10_player_sfx_controller"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fcb3x"]
 radius = 7.9
@@ -51,6 +51,7 @@ volume_db = -12.0
 loop = true
 
 [node name="Player" type="CharacterBody2D" unique_id=640300134]
+z_index = 5
 script = ExtResource("1_fcb3x")
 abilities = ExtResource("4_abilities")
 

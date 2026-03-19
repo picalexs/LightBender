@@ -84,6 +84,20 @@ var _was_wall_sliding: bool = false
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _trail_effect = get_node_or_null("TrailEffect")
 
+var active_light_zones: int = 0
+func add_light_zone():
+	active_light_zones += 1
+	# As long as we are in at least 1 zone, the floor is solid
+	set_collision_mask_value(1, true)
+
+func remove_light_zone():
+	active_light_zones -= 1
+	
+	# Only disable the floor if we have left EVERY light zone
+	if active_light_zones <= 0:
+		active_light_zones = 0 # Failsafe to prevent negative numbers
+		set_collision_mask_value(1, false)
+
 
 func _ready() -> void:
 	_ensure_abilities()
@@ -109,7 +123,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_is_jumping = false
 	if event.is_action_released("ui_accept"):
 		_slow_fall_armed = false
-
 
 func _physics_process(delta: float) -> void:
 	var was_dashing := _is_dashing()
