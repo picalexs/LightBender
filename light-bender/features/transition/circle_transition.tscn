@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/transition/circle_transition.gd" id="1_transition_script"]
+[ext_resource type="Shader" path="res://features/transition/circle_cutout.gdshader" id="2_circle_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_circle_cutout"]
+shader = ExtResource("2_circle_shader")
+shader_parameter/hole_center = Vector2(0, 0)
+shader_parameter/hole_radius = 0.0
+shader_parameter/edge_softness = 2.0
+
+[node name="CircleTransition" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_transition_script")
+
+[node name="Overlay" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_circle_cutout")

@@ -1,0 +1,183 @@
+extends CanvasLayer
+
+signal transition_started
+signal fully_covered
+signal transition_finished
+
+@export_group("Target")
+@export var target_path: NodePath
+@export var fallback_to_viewport_center: bool = true
+
+@export_group("Timing")
+@export var close_duration: float = 0.22
+@export var hold_delay: float = 0.25
+@export var open_duration: float = 0.22
+
+@export_group("Visual")
+@export var edge_softness: float = 2.0
+@export var extra_radius_margin: float = 4.0
+@export var overlay_layer: int = 100
+
+@export_group("Behavior")
+@export var process_while_paused: bool = true
+
+var _is_running: bool = false
+var _active_tween: Tween
+var _target_node: Node2D
+
+@onready var _overlay: ColorRect = $Overlay
+
+
+func _ready() -> void:
+	_sanitize_settings()
+	layer = overlay_layer
+	process_mode = Node.PROCESS_MODE_ALWAYS if process_while_paused else Node.PROCESS_MODE_INHERIT
+	_resolve_target()
+	_apply_shader_defaults()
+	_overlay.visible = false
+
+
+func play_from_target(custom_hold_delay: float = -1.0) -> void:
+	_resolve_target()
+	if _target_node != null:
+		play_from_world_position(_target_node.global_position, custom_hold_delay)
+		return
+
+	if fallback_to_viewport_center:
+		play_from_screen_position(_get_viewport_size() * 0.5, custom_hold_delay)
+
+
+func play_from_world_position(world_position: Vector2, custom_hold_delay: float = -1.0) -> void:
+	var screen_position = _world_to_screen(world_position)
+	play_from_screen_position(screen_position, custom_hold_delay)
+
+
+func play_from_screen_position(screen_position: Vector2, custom_hold_delay: float = -1.0) -> void:
+	_sanitize_settings()
+	_kill_active_tween()
+
+	var clamped_center = _clamp_to_viewport(screen_position)
+	var max_radius = _radius_to_cover_viewport(clamped_center)
+	var effective_hold = hold_delay if custom_hold_delay < 0.0 else max(0.0, custom_hold_delay)
+
+	_overlay.visible = true
+	_set_hole_center(clamped_center)
+	_set_hole_radius(max_radius)
+
+	_is_running = true
+	transition_started.emit()
+
+	_active_tween = create_tween()
+	_active_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_active_tween.tween_method(_set_hole_radius, max_radius, 0.0, close_duration)
+	_active_tween.tween_callback(_on_fully_covered)
+	if effective_hold > 0.0:
+		_active_tween.tween_interval(effective_hold)
+	_active_tween.tween_method(_set_hole_radius, 0.0, max_radius, open_duration)
+	_active_tween.tween_callback(_on_transition_finished)
+
+
+func is_running() -> bool:
+	return _is_running
+
+
+func _on_fully_covered() -> void:
+	fully_covered.emit()
+
+
+func _on_transition_finished() -> void:
+	_is_running = false
+	_active_tween = null
+	_overlay.visible = false
+	transition_finished.emit()
+
+
+func _resolve_target() -> void:
+	_target_node = null
+	if target_path.is_empty():
+		return
+
+	var candidate = get_node_or_null(target_path)
+	if candidate is Node2D:
+		_target_node = candidate
+
+
+func _sanitize_settings() -> void:
+	close_duration = max(0.01, close_duration)
+	hold_delay = max(0.0, hold_delay)
+	open_duration = max(0.01, open_duration)
+	edge_softness = max(0.0, edge_softness)
+	extra_radius_margin = max(0.0, extra_radius_margin)
+
+
+func _apply_shader_defaults() -> void:
+	var material = _get_shader_material()
+	if material == null:
+		return
+	material.set_shader_parameter("edge_softness", edge_softness)
+	material.set_shader_parameter("hole_center", _get_viewport_size() * 0.5)
+	material.set_shader_parameter("hole_radius", 0.0)
+
+
+func _get_shader_material() -> ShaderMaterial:
+	return _overlay.material as ShaderMaterial
+
+
+func _set_hole_center(screen_position: Vector2) -> void:
+	var material = _get_shader_material()
+	if material == null:
+		return
+	material.set_shader_parameter("hole_center", screen_position)
+	material.set_shader_parameter("edge_softness", edge_softness)
+
+
+func _set_hole_radius(radius: float) -> void:
+	var material = _get_shader_material()
+	if material == null:
+		return
+	material.set_shader_parameter("hole_radius", radius)
+
+
+func _world_to_screen(world_position: Vector2) -> Vector2:
+	return get_viewport().get_canvas_transform() * world_position
+
+
+func _clamp_to_viewport(screen_position: Vector2) -> Vector2:
+	var viewport_size = _get_viewport_size()
+	return Vector2(
+		clamp(screen_position.x, 0.0, viewport_size.x),
+		clamp(screen_position.y, 0.0, viewport_size.y),
+	)
+
+
+func _radius_to_cover_viewport(center: Vector2) -> float:
+	var viewport_size = _get_viewport_size()
+	var corners = [
+		Vector2.ZERO,
+		Vector2(viewport_size.x, 0.0),
+		Vector2(0.0, viewport_size.y),
+		viewport_size,
+	]
+
+	var max_distance = 0.0
+	for corner in corners:
+		max_distance = max(max_distance, center.distance_to(corner))
+
+	return max_distance + extra_radius_margin
+
+
+func _get_viewport_size() -> Vector2:
+	var viewport = get_viewport()
+	if viewport == null:
+		return Vector2.ZERO
+	return viewport.get_visible_rect().size
+
+
+func _kill_active_tween() -> void:
+	if _active_tween != null and is_instance_valid(_active_tween):
+		_active_tween.kill()
+	_active_tween = null
+
+
+func _exit_tree() -> void:
+	_kill_active_tween()

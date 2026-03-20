@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://dtck6el73j4rm"]
+
+[ext_resource type="Script" uid="uid://cp3wrd4dikbjm" path="res://features/lightzone/light_zone.gd" id="1_l4ffd"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_3soh7"]
+blend_mode = 2
+
+[node name="LightZone" type="Polygon2D" unique_id=1922344028]
+color = Color(1, 1, 1, 0)
+polygon = PackedVector2Array(-72.00006, -152, -71.99997, -32, 64, -31.999992, 64, -154)
+script = ExtResource("1_l4ffd")
+
+[node name="TriggerZone" type="Area2D" parent="." unique_id=1824349842]
+
+[node name="Hitbox" type="CollisionPolygon2D" parent="TriggerZone" unique_id=886791938]
+polygon = PackedVector2Array(-72.00006, -152, -71.99997, -32, 64, -31.999992, 64, -154)
+
+[node name="Hole" type="Polygon2D" parent="." unique_id=457230330]
+material = SubResource("CanvasItemMaterial_3soh7")
+invert_border = 1000.0
+polygon = PackedVector2Array(-72.00006, -152, -71.99997, -32, 64, -31.999992, 64, -154)

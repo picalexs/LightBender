@@ -1,0 +1,128 @@
+extends Node
+
+signal respawn_requested(source: StringName)
+signal respawn_completed(source: StringName)
+
+@export_group("Nodes")
+@export var player_path: NodePath = ^"../Player"
+@export var transition_path: NodePath = ^"../RespawnTransition"
+@export var spawn_marker_path: NodePath
+
+@export_group("Manual Trigger")
+@export var force_respawn_enabled: bool = true
+@export var force_respawn_keycode: int = KEY_O
+
+@export_group("Automatic Trigger")
+@export var fall_limit_enabled: bool = true
+@export var fall_limit_y: float = 300.0
+
+@export_group("Behavior")
+@export var custom_hold_delay: float = -1.0
+@export var reset_velocity_on_respawn: bool = true
+
+var _spawn_position: Vector2 = Vector2.ZERO
+var _pending_respawn_source: StringName = &""
+
+@onready var _player: CharacterBody2D = get_node_or_null(player_path) as CharacterBody2D
+@onready var _respawn_transition = get_node_or_null(transition_path)
+
+
+func _ready() -> void:
+	_cache_spawn_position()
+	_connect_transition_signals()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not force_respawn_enabled:
+		return
+	if not _is_force_respawn_event(event):
+		return
+	request_respawn(&"manual")
+
+
+func _physics_process(_delta: float) -> void:
+	if not fall_limit_enabled or _player == null:
+		return
+	if _player.global_position.y > fall_limit_y:
+		request_respawn(&"fall_limit")
+
+
+func request_respawn(source: StringName = &"manual") -> void:
+	if _player == null or _has_pending_respawn():
+		return
+	if _is_transition_running():
+		return
+
+	_pending_respawn_source = source
+	respawn_requested.emit(source)
+
+	if _respawn_transition != null and _respawn_transition.has_method("play_from_target"):
+		_respawn_transition.play_from_target(custom_hold_delay)
+		return
+
+	_finish_respawn()
+
+
+func refresh_spawn_position() -> void:
+	_cache_spawn_position()
+
+
+func _is_force_respawn_event(event: InputEvent) -> bool:
+	if not (event is InputEventKey):
+		return false
+
+	var key_event := event as InputEventKey
+	return key_event.pressed and not key_event.echo and key_event.keycode == force_respawn_keycode
+
+
+func _connect_transition_signals() -> void:
+	if _respawn_transition == null:
+		return
+	if not _respawn_transition.has_signal("fully_covered"):
+		return
+	_respawn_transition.fully_covered.connect(_on_transition_fully_covered)
+
+
+func _cache_spawn_position() -> void:
+	if _player == null:
+		return
+
+	_spawn_position = _player.global_position
+
+	if spawn_marker_path.is_empty():
+		return
+
+	var marker = get_node_or_null(spawn_marker_path)
+	if marker is Node2D:
+		_spawn_position = marker.global_position
+
+
+func _is_transition_running() -> bool:
+	return _respawn_transition != null \
+		and _respawn_transition.has_method("is_running") \
+		and _respawn_transition.is_running()
+
+
+func _has_pending_respawn() -> bool:
+	return _pending_respawn_source != &""
+
+
+func _on_transition_fully_covered() -> void:
+	if not _has_pending_respawn():
+		return
+	_finish_respawn()
+
+
+func _finish_respawn() -> void:
+	if _player == null:
+		_pending_respawn_source = &""
+		return
+
+	var source := _pending_respawn_source
+	_pending_respawn_source = &""
+
+	_player.global_position = _spawn_position
+	if reset_velocity_on_respawn:
+		_player.velocity = Vector2.ZERO
+
+	respawn_completed.emit(source)
