@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://5fal6uvdam6w"]
+
+[ext_resource type="Script" uid="uid://eqe6t68tsdcr" path="res://features/interact_prompt/interact_prompt.gd" id="1_ak3qk"]
+[ext_resource type="FontFile" uid="uid://dwttcgep1o3nx" path="res://assets/pixelfont.ttf" id="2_dx3vq"]
+
+[node name="PanelContainer" type="PanelContainer" unique_id=322261283]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -0.5
+offset_top = -26.910034
+offset_right = 0.5
+offset_bottom = -3.9100342
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(0.82, 0.82)
+script = ExtResource("1_ak3qk")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=264416199]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer" unique_id=675834022]
+z_index = 10
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_dx3vq")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1

@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://do0djdwqgue4v"]
+
+[ext_resource type="Script" uid="uid://dx0c3o7g4pf1f" path="res://features/switch/switch.gd" id="1_8c5r1"]
+[ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="2_3o34t"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_emybh"]
+
+[node name="Switch" type="Area2D" unique_id=1171742787]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_8c5r1")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=670111073]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1176049424]
+shape = SubResource("RectangleShape2D_emybh")
+
+[node name="InteractPrompt" parent="." unique_id=1592192165 instance=ExtResource("2_3o34t")]

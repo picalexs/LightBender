@@ -84,11 +84,15 @@ var _was_wall_sliding: bool = false
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _trail_effect = get_node_or_null("TrailEffect")
 
+@onready var safety_scanner = $SafetyScanner
+var is_in_light: bool = false
 var active_light_zones: int = 0
+
 func add_light_zone():
 	active_light_zones += 1
+	is_in_light = true 
 	# As long as we are in at least 1 zone, the floor is solid
-	set_collision_mask_value(1, true)
+	#set_collision_mask_value(1, true)
 
 func remove_light_zone():
 	active_light_zones -= 1
@@ -96,13 +100,23 @@ func remove_light_zone():
 	# Only disable the floor if we have left EVERY light zone
 	if active_light_zones <= 0:
 		active_light_zones = 0 # Failsafe to prevent negative numbers
+		is_in_light = false
 		set_collision_mask_value(1, false)
 
+func _re_enter_light():
+	if is_in_light and not get_collision_mask_value(1):
+		if not safety_scanner.has_overlapping_bodies():
+			set_collision_mask_value(1, true)
+
+func _snap_to_checkpoint():
+	if Global.current_checkpoint != Vector2.ZERO:
+		global_position = Global.current_checkpoint
 
 func _ready() -> void:
 	_ensure_abilities()
 	_refill_air_jumps()
 	_update_dash_trail_state()
+	#snap_to_checkpoint()
 
 
 func _ensure_abilities() -> void:
@@ -125,6 +139,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_slow_fall_armed = false
 
 func _physics_process(delta: float) -> void:
+	# Try to re-enter lightzone 
+	_re_enter_light()
+	
 	var was_dashing := _is_dashing()
 	var on_floor := is_on_floor()
 	_tick_timers(delta, on_floor)
@@ -152,6 +169,7 @@ func _physics_process(delta: float) -> void:
 		_is_jumping = false
 		_refill_air_jumps()
 		_slow_fall_armed = false
+		
 
 
 # Counts down coyote window and jump buffer each frame; resets coyote on landing.

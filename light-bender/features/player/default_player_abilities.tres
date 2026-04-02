@@ -4,3 +4,8 @@
 
 [resource]
 script = ExtResource("1_ability_script")
+can_dash = false
+can_wall_jump = false
+can_wall_slide = false
+can_double_jump = false
+can_slow_fall = false

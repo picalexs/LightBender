@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://c31ekjs10pnfb"]
+
+[ext_resource type="Script" uid="uid://qxc757kimx3n" path="res://features/door/door.gd" id="1_osf6s"]
+[ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="2_2n7ou"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eahuo"]
+size = Vector2(20, 40)
+
+[node name="Door" type="Area2D" unique_id=774776963]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_osf6s")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1465704370]
+offset_left = -10.0
+offset_top = -30.0
+offset_right = 10.0
+offset_bottom = 10.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1486600644]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_eahuo")
+
+[node name="InteractPrompt" parent="." unique_id=1592192165 instance=ExtResource("2_2n7ou")]

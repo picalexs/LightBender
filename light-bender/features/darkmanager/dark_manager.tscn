@@ -1,11 +1,14 @@
 [gd_scene format=3 uid="uid://cysuppjvuw1wv"]
 
+[ext_resource type="Script" uid="uid://du2yue1j3s08v" path="res://features/darkmanager/dark_manager.gd" id="1_ga7b3"]
+
 [node name="DarkManager" type="CanvasGroup" unique_id=1218959965]
 z_index = 3
+script = ExtResource("1_ga7b3")
 
 [node name="GlobalDark" type="ColorRect" parent="." unique_id=803151607]
 offset_left = -500.0
 offset_top = -500.0
 offset_right = 500.0
 offset_bottom = 500.0
-color = Color(0, 0, 0, 1)
+color = Color(0, 0, 0, 0.68235296)

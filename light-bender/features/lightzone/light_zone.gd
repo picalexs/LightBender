@@ -1,9 +1,23 @@
 @tool
 extends Polygon2D
 
+@export var is_on: bool = true
+
 @onready var trigger_zone = $TriggerZone
 @onready var hitbox = $TriggerZone/Hitbox
 @onready var hole = $Hole # <--- Updated reference
+
+func toggle_light():
+	is_on = !is_on # Flip the boolean! (True becomes False, False becomes True)
+	
+	# 1. Turn the visual hole punch on or off
+	if has_node("Hole"):
+		$Hole.visible = is_on
+		
+	# 2. Safely enable/disable the physics hitbox 
+	# (We use set_deferred so Godot doesn't crash if we flip the switch mid-jump)
+	if has_node("TriggerZone/Hitbox"):
+		$TriggerZone/Hitbox.set_deferred("disabled", not is_on)
 
 func _process(_delta):
 	if Engine.is_editor_hint():
@@ -18,6 +32,11 @@ func _ready():
 		
 		trigger_zone.body_entered.connect(_on_body_entered)
 		trigger_zone.body_exited.connect(_on_body_exited)
+		
+		if has_node("Hole"):
+			$Hole.visible = is_on
+		if has_node("TriggerZone/Hitbox"):
+			$TriggerZone/Hitbox.set_deferred("disabled", not is_on)
 
 func _on_body_entered(body):
 	# has_method is a super safe way to check if the object is our Player
