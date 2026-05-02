@@ -55,7 +55,7 @@ const PRESETS: Dictionary = {
 	"death": {
 		"time_scale": 1.40,
 		"flow_speed": 0.70,
-		"pixel_size": 12.0,
+		"pixel_size": 24.0,
 		"noise_scale": 4.000,
 		"warp_strength": 2.000,
 		"ridge_strength": 0.65,

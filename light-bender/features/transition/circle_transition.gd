@@ -24,8 +24,14 @@ signal transition_finished
 var _is_running: bool = false
 var _active_tween: Tween
 var _target_node: Node2D
+var _tracked_node: Node2D = null
 
 @onready var _overlay: ColorRect = $Overlay
+
+
+func _process(_delta: float) -> void:
+	if _is_running and _tracked_node != null and is_instance_valid(_tracked_node):
+		_set_hole_center(_clamp_to_viewport(_world_to_screen(_tracked_node.global_position)))
 
 
 func _ready() -> void:
@@ -52,14 +58,16 @@ func play_from_target(custom_hold_delay: float = -1.0) -> void:
 		play_from_screen_position(_get_viewport_size() * 0.5, custom_hold_delay)
 
 
-func play_ring_from_target(ring_radius: float = 80.0, ring_hold: float = 0.2, custom_hold_delay: float = -1.0) -> void:
+func play_ring_from_target(ring_radius: float = 80.0, ring_hold: float = 0.2, custom_hold_delay: float = -1.0, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
 	_resolve_target()
 	if _target_node != null:
-		_play_ring_from_screen_pos(_world_to_screen(_target_node.global_position), ring_radius, ring_hold, custom_hold_delay)
+		_play_ring_from_screen_pos(_world_to_screen(_target_node.global_position), ring_radius, ring_hold, custom_hold_delay, phase1_dur, phase2_dur)
+		_tracked_node = _target_node
 		return
 	var player = _find_player()
 	if player != null:
-		_play_ring_from_screen_pos(_world_to_screen(player.global_position), ring_radius, ring_hold, custom_hold_delay)
+		_play_ring_from_screen_pos(_world_to_screen(player.global_position), ring_radius, ring_hold, custom_hold_delay, phase1_dur, phase2_dur)
+		_tracked_node = player
 		return
 	if fallback_to_viewport_center:
 		_play_ring_from_screen_pos(_get_viewport_size() * 0.5, ring_radius, ring_hold, custom_hold_delay)
@@ -73,10 +81,12 @@ func play_ring_open_from_target(ring_radius: float = 80.0, ring_hold: float = 0.
 	_resolve_target()
 	if _target_node != null:
 		_play_ring_open_from_screen_pos(_world_to_screen(_target_node.global_position), ring_radius, ring_hold, phase1_dur, phase2_dur)
+		_tracked_node = _target_node
 		return
 	var player = _find_player()
 	if player != null:
 		_play_ring_open_from_screen_pos(_world_to_screen(player.global_position), ring_radius, ring_hold, phase1_dur, phase2_dur)
+		_tracked_node = player
 		return
 	if fallback_to_viewport_center:
 		_play_ring_open_from_screen_pos(_get_viewport_size() * 0.5, ring_radius, ring_hold, phase1_dur, phase2_dur)
@@ -207,6 +217,7 @@ func _on_fully_covered() -> void:
 func _on_transition_finished() -> void:
 	_is_running = false
 	_active_tween = null
+	_tracked_node = null
 	_overlay.visible = false
 	transition_finished.emit()
 
@@ -315,6 +326,7 @@ func _kill_active_tween() -> void:
 	if _active_tween != null and is_instance_valid(_active_tween):
 		_active_tween.kill()
 	_active_tween = null
+	_tracked_node = null
 
 
 func _exit_tree() -> void:

@@ -21,6 +21,7 @@ Global="*uid://b340w2qoelw87"
 BackgroundManager="*uid://iufps20rdm22"
 GodotAIBridgeRuntime="*uid://d2q1g4sgk4ffg"
 CircleTransition="*res://features/transition/circle_transition.tscn"
+MusicManager="*res://features/audio/music_manager.gd"
 
 [display]
 

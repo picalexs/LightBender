@@ -8,6 +8,7 @@ extends Node2D
 
 func _ready() -> void:
 	BackgroundManager.set_state("idle", 1.2)
+	MusicManager.on_level_started()
 	CircleTransition.play_ring_open_from_target(entry_ring_radius, entry_ring_hold, entry_phase1_duration, entry_phase2_duration)
 
 func _unhandled_input(event: InputEvent) -> void:

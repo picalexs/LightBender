@@ -22,6 +22,11 @@ const SOURCE_FALL: StringName = &"fall_limit"
 @export_group("Behavior")
 @export var custom_hold_delay: float = -1.0
 @export var reset_velocity_on_respawn: bool = true
+@export_subgroup("Ring Open")
+@export var ring_open_radius: float = 80.0
+@export var ring_open_hold: float = 0.05
+@export var ring_open_phase1_dur: float = -1.0
+@export var ring_open_phase2_dur: float = -1.0
 
 var _spawn_position: Vector2 = Vector2.ZERO
 var _pending_respawn_source: StringName = &""
@@ -61,6 +66,7 @@ func request_respawn(source: StringName = SOURCE_MANUAL) -> void:
 		return
 
 	BackgroundManager.set_state("death", 4.0)
+	MusicManager.on_death()
 	_pending_respawn_source = source
 	respawn_requested.emit(source)
 
@@ -117,6 +123,14 @@ func _has_pending_respawn() -> bool:
 func _on_transition_fully_covered() -> void:
 	if not _has_pending_respawn():
 		return
+	var hold: float = custom_hold_delay
+	if hold < 0.0:
+		if _respawn_transition != null and "hold_delay" in _respawn_transition:
+			hold = _respawn_transition.hold_delay
+		else:
+			hold = 0.5
+	if hold > 0.0:
+		await get_tree().create_timer(hold).timeout
 	_finish_respawn()
 
 
@@ -133,4 +147,9 @@ func _finish_respawn() -> void:
 		_player.velocity = Vector2.ZERO
 
 	BackgroundManager.set_state("idle", 1.5)
+	MusicManager.on_respawn()
+
+	if _respawn_transition != null and _respawn_transition.has_method("play_ring_open_from_target"):
+		_respawn_transition.play_ring_open_from_target(ring_open_radius, ring_open_hold, ring_open_phase1_dur, ring_open_phase2_dur)
+
 	respawn_completed.emit(source)

@@ -65,10 +65,11 @@ func _start_level_transition() -> void:
 	_transitioning = true
 	level_transition_started.emit()
 	BackgroundManager.set_state("level_complete", 3.0)
+	MusicManager.on_level_complete()
 
-	if transition != null and transition.has_method("play_ring_from_world_position"):
+	if transition != null and transition.has_method("play_ring_from_target"):
 		transition.fully_covered.connect(_on_transition_fully_covered, CONNECT_ONE_SHOT)
-		transition.call("play_ring_from_world_position", global_position, ring_radius, ring_hold_time, transition_delay, ring_close_to_duration, ring_close_from_duration)
+		transition.call("play_ring_from_target", ring_radius, ring_hold_time, transition_delay, ring_close_to_duration, ring_close_from_duration)
 	elif transition != null and transition.has_method("play_from_target"):
 		transition.fully_covered.connect(_on_transition_fully_covered, CONNECT_ONE_SHOT)
 		transition.play_from_target(transition_delay)
