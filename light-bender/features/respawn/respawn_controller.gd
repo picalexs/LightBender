@@ -53,6 +53,7 @@ func request_respawn(source: StringName = &"manual") -> void:
 	if _is_transition_running():
 		return
 
+	BackgroundManager.set_state("death", 4.0)
 	_pending_respawn_source = source
 	respawn_requested.emit(source)
 
@@ -125,4 +126,5 @@ func _finish_respawn() -> void:
 	if reset_velocity_on_respawn:
 		_player.velocity = Vector2.ZERO
 
+	BackgroundManager.set_state("idle", 1.5)
 	respawn_completed.emit(source)

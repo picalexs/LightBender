@@ -49,6 +49,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("lb_select"): # Usually Enter, Space, or 'A' button
 			if next_level_path != "":
 				print("Loading next level: ", next_level_path)
+				BackgroundManager.set_state("level_complete", 3.0)
 				get_tree().change_scene_to_file(next_level_path)
 			else:
 				push_warning("Door Error: No next level path assigned!")

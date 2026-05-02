@@ -18,11 +18,17 @@ config/icon="res://icon.svg"
 [autoload]
 
 Global="*uid://b340w2qoelw87"
+BackgroundManager="*uid://iufps20rdm22"
+GodotAIBridgeRuntime="*uid://d2q1g4sgk4ffg"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai_bridge/plugin.cfg")
 
 [input]
 
