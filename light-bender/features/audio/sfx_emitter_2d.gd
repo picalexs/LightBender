@@ -76,6 +76,35 @@ func stop_event(event_name: String) -> void:
 	_loop_players.erase(event_name)
 
 
+func play_event_persistent(event_name: String) -> bool:
+	if event_name == "":
+		return false
+
+	var clip = _get_clip(event_name)
+	if clip == null:
+		return false
+
+	var stream = clip.get("stream")
+	if stream == null:
+		return false
+
+	var player := AudioStreamPlayer.new()
+	player.stream = stream
+	player.bus = bus_name
+	player.volume_db = float(clip.get("volume_db") if clip.get("volume_db") != null else 0.0)
+
+	var base_pitch := float(clip.get("pitch_scale") if clip.get("pitch_scale") != null else 1.0)
+	var randomness: float = max(0.0, float(clip.get("pitch_randomness") if clip.get("pitch_randomness") != null else 0.0))
+	if randomness > 0.0:
+		base_pitch += randf_range(-randomness, randomness)
+	player.pitch_scale = max(0.01, base_pitch)
+
+	get_tree().root.add_child(player)
+	player.play()
+	player.finished.connect(player.queue_free)
+	return true
+
+
 func stop_all_events() -> void:
 	for player in _one_shot_players:
 		if is_instance_valid(player):

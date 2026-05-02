@@ -30,20 +30,25 @@ func _connect_signals() -> void:
 			continue
 
 		var event: String = binding.event_name
-		var handler: Callable
-		match binding.arg_count:
-			1: handler = func(_a): _play(event)
-			2: handler = func(_a, _b): _play(event)
-			3: handler = func(_a, _b, _c): _play(event)
-			_: handler = func(): _play(event)
-
+		var is_persistent: bool = bool(binding.get("persistent"))
+		var handler := _make_play_handler(event, is_persistent, binding.arg_count)
 		_target.connect(binding.signal_name, handler)
 
 
-func _play(event_name: String) -> void:
+func _make_play_handler(event: String, is_persistent: bool, arg_count: int) -> Callable:
+	match arg_count:
+		1: return func(_a): _play(event, is_persistent)
+		2: return func(_a, _b): _play(event, is_persistent)
+		3: return func(_a, _b, _c): _play(event, is_persistent)
+		_: return func(): _play(event, is_persistent)
+
+
+func _play(event_name: String, is_persistent: bool = false) -> void:
 	if not enable_sfx:
 		return
 	if _emitter == null:
 		return
-	if _emitter.has_method("play_event"):
+	if is_persistent and _emitter.has_method("play_event_persistent"):
+		_emitter.play_event_persistent(event_name)
+	elif _emitter.has_method("play_event"):
 		_emitter.play_event(event_name)

@@ -3,9 +3,42 @@
 [ext_resource type="Script" uid="uid://qxc757kimx3n" path="res://features/door/door.gd" id="1_osf6s"]
 [ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="2_2n7ou"]
 [ext_resource type="Texture2D" uid="uid://8jpanmxu84ab" path="res://assets/sprites/Door.png" id="3_oe0de"]
+[ext_resource type="Script" uid="uid://qf78bcne6cy1" path="res://features/audio/sfx_emitter_2d.gd" id="4_h1vtk"]
+[ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="5_55oy2"]
+[ext_resource type="AudioStream" uid="uid://cs5w7klch8e5s" path="res://assets/audio/door_open.wav" id="6_dfaoq"]
+[ext_resource type="AudioStream" uid="uid://buuia6816vc7r" path="res://assets/audio/next_level.wav" id="7_55oy2"]
+[ext_resource type="Script" uid="uid://ckxtm8u8eyyu6" path="res://features/audio/node_sfx_controller.gd" id="7_putx2"]
+[ext_resource type="Script" uid="uid://b0bxvxbw300t4" path="res://features/audio/sfx_signal_binding.gd" id="8_t1cpt"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eahuo"]
 size = Vector2(32, 48)
+
+[sub_resource type="Resource" id="Resource_g1432"]
+script = ExtResource("5_55oy2")
+event_name = "door_open"
+stream = ExtResource("6_dfaoq")
+volume_db = -5.0
+pitch_scale = 1.5
+pitch_randomness = 0.4
+metadata/_custom_type_script = "uid://cejnb7kcm0p3l"
+
+[sub_resource type="Resource" id="SfxClip_next_level"]
+script = ExtResource("5_55oy2")
+event_name = "next_level"
+stream = ExtResource("7_55oy2")
+pitch_scale = 0.9
+pitch_randomness = 0.2
+
+[sub_resource type="Resource" id="Resource_gdbgr"]
+script = ExtResource("8_t1cpt")
+signal_name = "level_transition_started"
+event_name = "door_open"
+
+[sub_resource type="Resource" id="SfxBinding_next_level"]
+script = ExtResource("8_t1cpt")
+signal_name = "level_transition_started"
+event_name = "next_level"
+persistent = true
 
 [node name="Door" type="Area2D" unique_id=774776963]
 collision_layer = 0
@@ -26,3 +59,13 @@ offset_bottom = -26.92683
 position = Vector2(0, -2)
 scale = Vector2(2, 2)
 texture = ExtResource("3_oe0de")
+
+[node name="SFX_emitter" type="Node2D" parent="." unique_id=2067834201]
+script = ExtResource("4_h1vtk")
+clips = [SubResource("Resource_g1432"), SubResource("SfxClip_next_level")]
+
+[node name="Node_SFX_Controller" type="Node2D" parent="." unique_id=495456138]
+script = ExtResource("7_putx2")
+target_path = NodePath("..")
+emitter_path = NodePath("../SFX_emitter")
+bindings = Array[ExtResource("8_t1cpt")]([SubResource("Resource_gdbgr"), SubResource("SfxBinding_next_level")])

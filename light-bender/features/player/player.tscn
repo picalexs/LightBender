@@ -57,8 +57,9 @@ loop = true
 script = ExtResource("7_sfx_clip")
 event_name = "death"
 stream = ExtResource("10_5rlqq")
+volume_db = 10.0
 pitch_scale = 0.8
-pitch_randomness = 0.1
+pitch_randomness = 0.15
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_47rrt"]
 size = Vector2(12, 5)
