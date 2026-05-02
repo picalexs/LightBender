@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://ltrec001lb"]
+
+[ext_resource type="Script" path="res://features/light_receiver/light_receiver.gd" id="1_ltrec"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rec"]
+size = Vector2(32, 32)
+
+[node name="LightReceiver" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_ltrec")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_rec")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.2, 0.22, 0.25, 1)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[node name="PoweredIndicator" type="Polygon2D" parent="."]
+visible = false
+color = Color(1.0, 0.9, 0.2, 1)
+polygon = PackedVector2Array(0, -10, 7, -7, 10, 0, 7, 7, 0, 10, -7, 7, -10, 0, -7, -7)

@@ -5,9 +5,10 @@
 [ext_resource type="PackedScene" uid="uid://cysuppjvuw1wv" path="res://features/darkmanager/dark_manager.tscn" id="3_55cf8"]
 [ext_resource type="PackedScene" path="res://features/transition/circle_transition.tscn" id="3_circle_transition"]
 [ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="3_w6jdy"]
-[ext_resource type="Script" path="res://levels/test_room/test_scene_controller.gd" id="4_test_scene_controller"]
+[ext_resource type="Script" uid="uid://dn8jhdsogq15x" path="res://levels/test_room/test_scene_controller.gd" id="4_test_scene_controller"]
 [ext_resource type="Script" uid="uid://bqpuml7s3dshn" path="res://features/respawn/respawn_controller.gd" id="5_respawn_controller"]
 [ext_resource type="PackedScene" uid="uid://c31ekjs10pnfb" path="res://features/door/door.tscn" id="8_5jfyu"]
+[ext_resource type="PackedScene" uid="uid://do0djdwqgue4v" path="res://features/switch/switch.tscn" id="9_switch"]
 
 [sub_resource type="Animation" id="Animation_55cf8"]
 length = 0.001
@@ -102,35 +103,38 @@ position = Vector2(10, 21)
 position = Vector2(4, 143)
 scale = Vector2(1, 1.1065573)
 polygon = PackedVector2Array(-119, -249.42226, -63.348465, -30.668999, 72.651505, -30.668991, 172, -258.4593)
+is_on = true
 
 [node name="LightZone2" parent="DarkManager" unique_id=727071522 instance=ExtResource("3_w6jdy")]
 position = Vector2(-118, 96)
 polygon = PackedVector2Array(-109, -166, -111, 10, 26.68568, 4.4412117, 24, -96)
+is_on = true
 
 [node name="LightZone3" parent="DarkManager" unique_id=1376338180 instance=ExtResource("3_w6jdy")]
 position = Vector2(198, 171)
 scale = Vector2(1, 1.224469)
+is_on = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=216026498]
 libraries/ = SubResource("AnimationLibrary_qcbks")
 autoplay = &"light"
 
 [node name="Door" parent="." unique_id=774776963 node_paths=PackedStringArray("respawn_manager") instance=ExtResource("8_5jfyu")]
-position = Vector2(118, -47)
+position = Vector2(120, -54)
 door_color = Color(0.29754007, 0.6199807, 0.30451936, 1)
-is_exit_door = false
-next_level_path = ""
 respawn_manager = NodePath("../RespawnController")
 
 [node name="Door2" parent="." unique_id=571584222 node_paths=PackedStringArray("respawn_manager") instance=ExtResource("8_5jfyu")]
-position = Vector2(-64, -79)
+position = Vector2(64, -102)
 door_color = Color(0.36611626, 0.5284877, 0.22713101, 1)
-is_exit_door = false
-next_level_path = ""
 respawn_manager = NodePath("../RespawnController")
 
 [node name="Door3" parent="." unique_id=1666038838 instance=ExtResource("8_5jfyu")]
-position = Vector2(225, 85)
+position = Vector2(81, 74)
 door_color = Color(1, 0, 0, 1)
 is_exit_door = true
 next_level_path = "uid://cw32k3fq31vbs"
+
+[node name="Switch" parent="." unique_id=999000001 node_paths=PackedStringArray("target_node") instance=ExtResource("9_switch")]
+position = Vector2(-48, -54)
+target_node = NodePath("../DarkManager/LightZone")

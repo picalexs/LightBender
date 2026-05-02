@@ -69,6 +69,7 @@ signal wall_slide_state_changed(is_sliding: bool)
 
 # ── Private state ─────────────────────────────────────────────────────────────
 var _facing_right: bool = true
+var held_mirror: Node = null  # set by MirrorBox when carried
 var _is_jumping: bool = false
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
@@ -486,6 +487,9 @@ func _update_facing() -> void:
 	elif dir < 0.0 and _facing_right:
 		_flip()
 
+
+func get_facing_direction() -> float:
+	return 1.0 if _facing_right else -1.0
 
 func _flip() -> void:
 	_facing_right = not _facing_right
