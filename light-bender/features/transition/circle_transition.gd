@@ -69,6 +69,48 @@ func play_ring_from_world_position(world_pos: Vector2, ring_radius: float = 80.0
 	_play_ring_from_screen_pos(_world_to_screen(world_pos), ring_radius, ring_hold, custom_hold_delay, phase1_dur, phase2_dur)
 
 
+func play_ring_open_from_target(ring_radius: float = 80.0, ring_hold: float = 0.2, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
+	_resolve_target()
+	if _target_node != null:
+		_play_ring_open_from_screen_pos(_world_to_screen(_target_node.global_position), ring_radius, ring_hold, phase1_dur, phase2_dur)
+		return
+	var player = _find_player()
+	if player != null:
+		_play_ring_open_from_screen_pos(_world_to_screen(player.global_position), ring_radius, ring_hold, phase1_dur, phase2_dur)
+		return
+	if fallback_to_viewport_center:
+		_play_ring_open_from_screen_pos(_get_viewport_size() * 0.5, ring_radius, ring_hold, phase1_dur, phase2_dur)
+
+
+func play_ring_open_from_world_position(world_pos: Vector2, ring_radius: float = 80.0, ring_hold: float = 0.2, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
+	_play_ring_open_from_screen_pos(_world_to_screen(world_pos), ring_radius, ring_hold, phase1_dur, phase2_dur)
+
+
+func _play_ring_open_from_screen_pos(screen_pos: Vector2, ring_radius: float, ring_hold: float, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
+	_sanitize_settings()
+	_kill_active_tween()
+
+	var clamped_center = _clamp_to_viewport(screen_pos)
+	var max_radius = _radius_to_cover_viewport(clamped_center)
+	var ring_open_dur := phase1_dur if phase1_dur > 0.0 else open_duration * 1.5
+	var ring_expand_dur := phase2_dur if phase2_dur > 0.0 else open_duration * 2.0
+
+	_overlay.visible = true
+	_set_hole_center(clamped_center)
+	_set_hole_radius(0.0)
+
+	_is_running = true
+	transition_started.emit()
+
+	_active_tween = create_tween()
+	_active_tween.tween_method(_set_hole_radius, 0.0, ring_radius, ring_open_dur) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_active_tween.tween_interval(ring_hold)
+	_active_tween.tween_method(_set_hole_radius, ring_radius, max_radius, ring_expand_dur) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_active_tween.tween_callback(_on_transition_finished)
+
+
 func _play_ring_from_screen_pos(screen_pos: Vector2, ring_radius: float, ring_hold: float, custom_hold_delay: float, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
 	_sanitize_settings()
 	_kill_active_tween()
@@ -126,6 +168,30 @@ func play_from_screen_position(screen_position: Vector2, custom_hold_delay: floa
 	_active_tween.tween_callback(_on_fully_covered)
 	if effective_hold > 0.0:
 		_active_tween.tween_interval(effective_hold)
+	_active_tween.tween_method(_set_hole_radius, 0.0, max_radius, open_duration)
+	_active_tween.tween_callback(_on_transition_finished)
+
+
+func play_open(custom_center: Vector2 = Vector2.ZERO) -> void:
+	_sanitize_settings()
+	_kill_active_tween()
+
+	var center: Vector2
+	if custom_center == Vector2.ZERO:
+		center = _get_viewport_size() * 0.5
+	else:
+		center = _clamp_to_viewport(custom_center)
+	var max_radius = _radius_to_cover_viewport(center)
+
+	_overlay.visible = true
+	_set_hole_center(center)
+	_set_hole_radius(0.0)
+
+	_is_running = true
+	transition_started.emit()
+
+	_active_tween = create_tween()
+	_active_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_active_tween.tween_method(_set_hole_radius, 0.0, max_radius, open_duration)
 	_active_tween.tween_callback(_on_transition_finished)
 

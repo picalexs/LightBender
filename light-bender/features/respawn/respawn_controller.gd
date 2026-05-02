@@ -4,7 +4,7 @@ signal respawn_requested(source: StringName)
 signal respawn_completed(source: StringName)
 
 const SOURCE_MANUAL: StringName = &"manual"
-const SOURCE_FALL: StringName   = &"fall_limit"
+const SOURCE_FALL: StringName = &"fall_limit"
 
 @export_group("Nodes")
 @export var player_path: NodePath = ^"../Player"
@@ -27,10 +27,14 @@ var _spawn_position: Vector2 = Vector2.ZERO
 var _pending_respawn_source: StringName = &""
 
 @onready var _player: CharacterBody2D = get_node_or_null(player_path) as CharacterBody2D
-@onready var _respawn_transition = get_node_or_null(transition_path)
+var _respawn_transition: Node = null
 
 
 func _ready() -> void:
+	if not transition_path.is_empty():
+		_respawn_transition = get_node_or_null(transition_path)
+	if _respawn_transition == null:
+		_respawn_transition = get_node_or_null("/root/CircleTransition")
 	_cache_spawn_position()
 	_connect_transition_signals()
 

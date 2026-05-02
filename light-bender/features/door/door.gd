@@ -32,9 +32,7 @@ func _ready() -> void:
 		body_entered.connect(_on_body_entered)
 		body_exited.connect(_on_body_exited)
 		if transition == null:
-			var root = get_tree().current_scene
-			if root != null:
-				transition = root.find_child("CircleTransition", true, false)
+			transition = get_node_or_null("/root/CircleTransition")
 
 func _apply_color() -> void:
 	if has_node("ColorRect"):
