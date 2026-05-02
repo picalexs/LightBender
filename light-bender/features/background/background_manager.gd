@@ -54,7 +54,7 @@ const PRESETS: Dictionary = {
 
 	"death": {
 		"time_scale": 1.40,
-		"flow_speed": 0.70,
+		"flow_speed": 0.50,
 		"pixel_size": 24.0,
 		"noise_scale": 4.000,
 		"warp_strength": 2.000,
@@ -64,7 +64,7 @@ const PRESETS: Dictionary = {
 		"color_mid": Color(0.240, 0.022, 0.022),
 		"color_bright": Color(0.920, 0.160, 0.060),
 		"brightness": 0.55,
-		"vignette_pow": 0.60,
+		"vignette_pow": 0.80,
 	},
 }
 

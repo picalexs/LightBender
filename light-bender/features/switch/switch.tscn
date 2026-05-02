@@ -4,9 +4,10 @@
 [ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="2_3o34t"]
 [ext_resource type="Script" uid="uid://qf78bcne6cy1" path="res://features/audio/sfx_emitter_2d.gd" id="3_sfxem"]
 [ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="4_sfxclip"]
-[ext_resource type="AudioStream" path="res://assets/audio/switch.wav" id="5_swsnd"]
+[ext_resource type="AudioStream" uid="uid://n0cd816itax3" path="res://assets/audio/switch.wav" id="5_swsnd"]
 [ext_resource type="Script" uid="uid://ckxtm8u8eyyu6" path="res://features/audio/node_sfx_controller.gd" id="6_sfxctrl"]
 [ext_resource type="Script" uid="uid://b0bxvxbw300t4" path="res://features/audio/sfx_signal_binding.gd" id="7_sfxbnd"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="8_ltrct"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_emybh"]
 
@@ -14,7 +15,6 @@
 script = ExtResource("4_sfxclip")
 event_name = "switch"
 stream = ExtResource("5_swsnd")
-volume_db = 0.0
 pitch_randomness = 0.05
 
 [sub_resource type="Resource" id="SfxBinding_switch"]
@@ -48,3 +48,13 @@ emitter_path = NodePath("../SfxEmitter")
 bindings = Array[ExtResource("7_sfxbnd")]([SubResource("SfxBinding_switch")])
 
 [node name="InteractPrompt" parent="." unique_id=1592192165 instance=ExtResource("2_3o34t")]
+offset_left = 6.0
+offset_top = -27.0
+offset_right = 7.0
+offset_bottom = -4.0
+
+[node name="LightReactive" type="Area2D" parent="." unique_id=1410065407]
+script = ExtResource("8_ltrct")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LightReactive" unique_id=1410065406]
+shape = SubResource("RectangleShape2D_emybh")

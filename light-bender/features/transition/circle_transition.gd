@@ -263,9 +263,11 @@ func _apply_shader_defaults() -> void:
 	var material = _get_shader_material()
 	if material == null:
 		return
+	var vp_size = _get_viewport_size()
 	material.set_shader_parameter("edge_softness", edge_softness)
-	material.set_shader_parameter("hole_center", _get_viewport_size() * 0.5)
+	material.set_shader_parameter("hole_center", vp_size * 0.5)
 	material.set_shader_parameter("hole_radius", 0.0)
+	material.set_shader_parameter("viewport_size", vp_size)
 
 
 func _get_shader_material() -> ShaderMaterial:
@@ -278,6 +280,7 @@ func _set_hole_center(screen_position: Vector2) -> void:
 		return
 	material.set_shader_parameter("hole_center", screen_position)
 	material.set_shader_parameter("edge_softness", edge_softness)
+	material.set_shader_parameter("viewport_size", _get_viewport_size())
 
 
 func _set_hole_radius(radius: float) -> void:

@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://buuia6816vc7r" path="res://assets/audio/next_level.wav" id="7_55oy2"]
 [ext_resource type="Script" uid="uid://ckxtm8u8eyyu6" path="res://features/audio/node_sfx_controller.gd" id="7_putx2"]
 [ext_resource type="Script" uid="uid://b0bxvxbw300t4" path="res://features/audio/sfx_signal_binding.gd" id="8_t1cpt"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="9_ltrct"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_eahuo"]
 size = Vector2(32, 48)
@@ -69,3 +70,10 @@ script = ExtResource("7_putx2")
 target_path = NodePath("..")
 emitter_path = NodePath("../SFX_emitter")
 bindings = Array[ExtResource("8_t1cpt")]([SubResource("Resource_gdbgr"), SubResource("SfxBinding_next_level")])
+
+[node name="LightReactive" type="Area2D" parent="." unique_id=9999999997]
+script = ExtResource("9_ltrct")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LightReactive" unique_id=9999999996]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_eahuo")

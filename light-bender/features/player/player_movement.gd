@@ -86,7 +86,7 @@ func add_light_zone():
 func remove_light_zone():
 	active_light_zones -= 1
 	if active_light_zones <= 0:
-		active_light_zones = 0  # failsafe against negative counts
+		active_light_zones = 0 # failsafe against negative counts
 		is_in_light = false
 		set_collision_mask_value(1, false)
 

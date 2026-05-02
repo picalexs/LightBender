@@ -13,7 +13,9 @@ const SOURCE_FALL: StringName = &"fall_limit"
 
 @export_group("Manual Trigger")
 @export var force_respawn_enabled: bool = true
-@export var force_respawn_keycode: int = KEY_O
+@export var force_respawn_keycode: int = KEY_P
+@export var restart_level_enabled: bool = true
+@export var restart_level_keycode: int = KEY_O
 
 @export_group("Automatic Trigger")
 @export var fall_limit_enabled: bool = true
@@ -45,6 +47,9 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if restart_level_enabled and _is_restart_level_event(event):
+		_restart_level()
+		return
 	if not force_respawn_enabled:
 		return
 	if not _is_force_respawn_event(event):
@@ -87,6 +92,20 @@ func _is_force_respawn_event(event: InputEvent) -> bool:
 
 	var key_event := event as InputEventKey
 	return key_event.pressed and not key_event.echo and key_event.keycode == force_respawn_keycode
+
+func _is_restart_level_event(event: InputEvent) -> bool:
+	if not (event is InputEventKey):
+		return false
+
+	var key_event := event as InputEventKey
+	return key_event.pressed and not key_event.echo and key_event.keycode == restart_level_keycode
+
+func _restart_level() -> void:
+	var current_scene := get_tree().current_scene
+	if current_scene == null:
+		push_warning("RespawnController: Cannot restart level, current_scene is null")
+		return
+	get_tree().reload_current_scene()
 
 
 func _connect_transition_signals() -> void:

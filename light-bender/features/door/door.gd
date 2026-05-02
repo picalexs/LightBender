@@ -28,6 +28,8 @@ signal level_transition_started
 var _is_player_inside: bool = false
 var _transitioning: bool = false
 
+@onready var _light_reactive: Node = $LightReactive
+
 func _ready() -> void:
 	_apply_color()
 
@@ -54,6 +56,8 @@ func _on_body_exited(body: Node2D) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_exit_door and _is_player_inside and not _transitioning:
+		if _light_reactive != null and not _light_reactive.can_interact():
+			return
 		if event.is_action_pressed("lb_select"):
 			if next_level_path != "":
 				_start_level_transition()

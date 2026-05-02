@@ -15,6 +15,8 @@ signal toggled(is_active: bool)
 var _player_in_zone: bool = false
 var _is_active: bool = false
 
+@onready var _light_reactive: Node = $LightReactive
+
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
@@ -29,6 +31,8 @@ func _on_body_exited(body: Node2D) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _player_in_zone and event.is_action_pressed(interact_action):
+		if _light_reactive != null and not _light_reactive.can_interact():
+			return
 		_is_active = !_is_active
 
 		var method_to_call := method_when_on if _is_active else method_when_off
