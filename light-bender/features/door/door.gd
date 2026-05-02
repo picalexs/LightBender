@@ -1,6 +1,9 @@
 @tool
 extends Area2D
 
+signal player_entered
+signal level_transition_started
+
 @export_group("Visuals")
 @export var door_color: Color = Color.WHITE:
 	set(value):
@@ -41,6 +44,7 @@ func _apply_color() -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if "Player" in body.name:
 		_is_player_inside = true
+		player_entered.emit()
 		if not is_exit_door:
 			_set_as_checkpoint()
 
@@ -59,6 +63,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _start_level_transition() -> void:
 	_transitioning = true
+	level_transition_started.emit()
 	BackgroundManager.set_state("level_complete", 3.0)
 
 	if transition != null and transition.has_method("play_ring_from_world_position"):

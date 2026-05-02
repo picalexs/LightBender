@@ -11,6 +11,9 @@ script = ExtResource("1_46036")
 
 [node name="Player" parent="." unique_id=640300134 instance=ExtResource("1_p5284")]
 
+[node name="PlayerSfxController" parent="Player" index="5"]
+respawn_path = NodePath("../../RespawnController")
+
 [node name="DarkManager" parent="." unique_id=1218959965 instance=ExtResource("2_46036")]
 
 [node name="TileMapLayer" parent="." unique_id=11531655 instance=ExtResource("3_maq6b")]

@@ -3,6 +3,7 @@ extends Node
 @export_group("References")
 @export var movement_path: NodePath = NodePath("..")
 @export var emitter_path: NodePath = NodePath("../SfxEmitter")
+@export var respawn_path: NodePath
 
 @export_group("Events")
 @export var enable_sfx: bool = true
@@ -11,6 +12,7 @@ extends Node
 @export var double_jump_event: String = "double_jump"
 @export var wall_jump_event: String = "wall_jump"
 @export var wall_slide_loop_event: String = "wall_slide_loop"
+@export var death_event: String = "death"
 
 var _movement: Node
 var _emitter: Node
@@ -20,10 +22,27 @@ func _ready() -> void:
 	_movement = get_node_or_null(movement_path)
 	_emitter = get_node_or_null(emitter_path)
 	_connect_movement_signals()
+	_connect_respawn_signals()
 
 
 func _exit_tree() -> void:
 	_stop_event(wall_slide_loop_event)
+
+
+func _connect_respawn_signals() -> void:
+	if respawn_path.is_empty():
+		return
+	var respawn := get_node_or_null(respawn_path)
+	if respawn == null:
+		return
+	if respawn.has_signal("respawn_requested"):
+		respawn.respawn_requested.connect(_on_respawn_requested)
+
+
+func _on_respawn_requested(_source: StringName) -> void:
+	if not enable_sfx:
+		return
+	_play_event(death_event)
 
 
 func _connect_movement_signals() -> void:

@@ -1,5 +1,7 @@
 extends Area2D
 
+signal toggled(is_active: bool)
+
 @export_group("Interaction")
 @export var interact_action: String = "lb_select"
 
@@ -32,6 +34,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var method_to_call := method_when_on if _is_active else method_when_off
 		var param_to_pass := parameter_when_on if _is_active else parameter_when_off
 		NodeDispatch.call_method(target_node, method_to_call, param_to_pass, "Switch")
+		toggled.emit(_is_active)
 
 		var viewport := get_viewport()
 		if viewport != null:
