@@ -3,6 +3,9 @@ extends Node
 signal respawn_requested(source: StringName)
 signal respawn_completed(source: StringName)
 
+const SOURCE_MANUAL: StringName = &"manual"
+const SOURCE_FALL: StringName   = &"fall_limit"
+
 @export_group("Nodes")
 @export var player_path: NodePath = ^"../Player"
 @export var transition_path: NodePath = ^"../RespawnTransition"
@@ -37,17 +40,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not _is_force_respawn_event(event):
 		return
-	request_respawn(&"manual")
+	request_respawn(SOURCE_MANUAL)
 
 
 func _physics_process(_delta: float) -> void:
 	if not fall_limit_enabled or _player == null:
 		return
 	if _player.global_position.y > fall_limit_y:
-		request_respawn(&"fall_limit")
+		request_respawn(SOURCE_FALL)
 
 
-func request_respawn(source: StringName = &"manual") -> void:
+func request_respawn(source: StringName = SOURCE_MANUAL) -> void:
 	if _player == null or _has_pending_respawn():
 		return
 	if _is_transition_running():
@@ -85,17 +88,16 @@ func _connect_transition_signals() -> void:
 
 
 func _cache_spawn_position() -> void:
+	_spawn_position = _get_spawn_position()
+
+func _get_spawn_position() -> Vector2:
 	if _player == null:
-		return
-
-	_spawn_position = _player.global_position
-
-	if spawn_marker_path.is_empty():
-		return
-
-	var marker = get_node_or_null(spawn_marker_path)
-	if marker is Node2D:
-		_spawn_position = marker.global_position
+		return Vector2.ZERO
+	if not spawn_marker_path.is_empty():
+		var marker = get_node_or_null(spawn_marker_path)
+		if marker is Node2D:
+			return (marker as Node2D).global_position
+	return _player.global_position
 
 
 func _is_transition_running() -> bool:

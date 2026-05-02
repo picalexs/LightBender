@@ -76,8 +76,8 @@ func _play_ring_from_screen_pos(screen_pos: Vector2, ring_radius: float, ring_ho
 	var clamped_center = _clamp_to_viewport(screen_pos)
 	var max_radius = _radius_to_cover_viewport(clamped_center)
 	var effective_hold = hold_delay if custom_hold_delay < 0.0 else max(0.0, custom_hold_delay)
-	var p1 = phase1_dur if phase1_dur > 0.0 else close_duration * 2.0
-	var p2 = phase2_dur if phase2_dur > 0.0 else close_duration * 1.5
+	var ring_form_dur := phase1_dur if phase1_dur > 0.0 else close_duration * 2.0
+	var ring_close_dur := phase2_dur if phase2_dur > 0.0 else close_duration * 1.5
 
 	_overlay.visible = true
 	_set_hole_center(clamped_center)
@@ -87,18 +87,14 @@ func _play_ring_from_screen_pos(screen_pos: Vector2, ring_radius: float, ring_ho
 	transition_started.emit()
 
 	_active_tween = create_tween()
-	# Phase 1: close to ring — decelerate into it (QUAD EASE_OUT)
-	_active_tween.tween_method(_set_hole_radius, max_radius, ring_radius, p1) \
+	_active_tween.tween_method(_set_hole_radius, max_radius, ring_radius, ring_form_dur) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	# Phase 2: brief pause showing the ring around the door
 	_active_tween.tween_interval(ring_hold)
-	# Phase 3: smooth final close — accelerate inward (CUBIC EASE_IN)
-	_active_tween.tween_method(_set_hole_radius, ring_radius, 0.0, p2) \
+	_active_tween.tween_method(_set_hole_radius, ring_radius, 0.0, ring_close_dur) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	_active_tween.tween_callback(_on_fully_covered)
 	if effective_hold > 0.0:
 		_active_tween.tween_interval(effective_hold)
-	# Open back with ease-out
 	_active_tween.tween_method(_set_hole_radius, 0.0, max_radius, open_duration) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_active_tween.tween_callback(_on_transition_finished)

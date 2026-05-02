@@ -22,8 +22,6 @@ func _ready() -> void:
 	trigger_zone.body_entered.connect(_on_body_entered)
 	trigger_zone.body_exited.connect(_on_body_exited)
 
-## Called every frame by BeamSource with world-space start/end points.
-## start_half_w / end_half_w let you make a cone (trapezoid) shape.
 func set_segment(from: Vector2, to: Vector2,
 		start_half_w: float, end_half_w: float = -1.0) -> void:
 	if end_half_w < 0.0:
@@ -31,22 +29,22 @@ func set_segment(from: Vector2, to: Vector2,
 
 	var dir := (to - from)
 	if dir.length_squared() < 1.0:
-		return  # zero-length segment, skip
+		return
 
 	var perp := dir.normalized().rotated(PI * 0.5)
 
-	# Convert global points to this node's local space
-	var lf := to_local(from)
-	var lt := to_local(to)
-	var lperp := (to_local(from + perp) - lf).normalized()
+	var local_from := to_local(from)
+	var local_to := to_local(to)
+	var local_perp := (to_local(from + perp) - local_from).normalized()
 
-	var pts := PackedVector2Array([
-		lf + lperp * start_half_w,
-		lt + lperp * end_half_w,
-		lt - lperp * end_half_w,
-		lf - lperp * start_half_w,
-	])
+	_update_polygons(PackedVector2Array([
+		local_from + local_perp * start_half_w,
+		local_to + local_perp * end_half_w,
+		local_to - local_perp * end_half_w,
+		local_from - local_perp * start_half_w,
+	]))
 
+func _update_polygons(pts: PackedVector2Array) -> void:
 	polygon = pts
 	if hole:
 		hole.polygon = pts

@@ -12,7 +12,7 @@ extends Area2D
 
 var held_item: Node = null
 
-var _nearby_pickupables: Array = []
+var _available_pickupables: Array = []
 var _carrier: Node = null
 
 func _ready() -> void:
@@ -33,18 +33,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			held_item.rotate_mirror()
 
 func _on_body_entered(body: Node2D) -> void:
-	if body.has_method("pickup") and not _nearby_pickupables.has(body):
-		_nearby_pickupables.append(body)
+	if body.has_method("pickup") and not _available_pickupables.has(body):
+		_available_pickupables.append(body)
 
 func _on_body_exited(body: Node2D) -> void:
-	_nearby_pickupables.erase(body)
+	_available_pickupables.erase(body)
 	if held_item == body:
 		_do_drop()
 
-func _nearest_pickupable() -> Node:
-	var best: Node = null
+func _nearest_pickupable() -> Node2D:
+	var best: Node2D = null
 	var best_dist := INF
-	for item in _nearby_pickupables:
+	for item in _available_pickupables:
 		if not is_instance_valid(item):
 			continue
 		var d: float = _carrier.global_position.distance_to(item.global_position)

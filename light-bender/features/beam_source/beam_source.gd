@@ -27,21 +27,20 @@ extends Node2D
 @export var cone_spread_factor: float = 3.0
 
 const BEAM_COLLISION_MASK: int = 1  # layer 1 = world + mirrors + receivers
+const MIRROR_BOUNCE_OFFSET: float = 2.0  # prevents self-intersection on mirror surface
 
 @onready var _segments: Array = []  # BeamSegment pool
 
-var _seg_scene: PackedScene = preload("res://features/beam_source/beam_segment.tscn")
+var _segment_scene: PackedScene = preload("res://features/beam_source/beam_segment.tscn")
 
 func _ready() -> void:
-	# Pre-allocate one segment per possible bounce + origin
 	for i in (max_bounces + 1):
-		var seg: Node = _seg_scene.instantiate()
+		var seg: Node = _segment_scene.instantiate()
 		add_child(seg)
 		seg.visible = false
 		_segments.append(seg)
 
 func _physics_process(_delta: float) -> void:
-	# Reset all receivers before tracing
 	for node in get_tree().get_nodes_in_group("light_receivers"):
 		if node.has_method("reset_beam"):
 			node.reset_beam()
@@ -51,7 +50,6 @@ func _physics_process(_delta: float) -> void:
 		   0, beam_half_width)
 
 func _trace(origin: Vector2, dir: Vector2, depth: int, half_w: float) -> void:
-	# Hide all remaining segments if we've reached max depth
 	if depth > max_bounces:
 		_hide_from(depth)
 		return
@@ -68,7 +66,6 @@ func _trace(origin: Vector2, dir: Vector2, depth: int, half_w: float) -> void:
 	var end_pt: Vector2 = origin + dir * max_beam_length if hit.is_empty() \
 						  else hit["position"]
 
-	# Shape this segment
 	var seg = _segments[depth]
 	seg.set_segment(origin, end_pt, half_w)
 	if not seg.visible:
@@ -80,26 +77,21 @@ func _trace(origin: Vector2, dir: Vector2, depth: int, half_w: float) -> void:
 
 	var collider: Node = hit["collider"]
 
-	# --- Mirror ---
 	if collider.has_method("get_reflect_direction"):
 		var reflected: Vector2 = collider.get_reflect_direction(dir, hit["normal"])
-		var out_hw: float = half_w
-		var is_cone: bool = collider.get("is_cone_mirror") == true
+		var output_half_width: float = half_w
+		var is_cone: bool = collider.get("is_cone_mirror", false)
 		if is_cone:
-			# Cone mirror: widen the outgoing beam, reshape this segment as trapezoid
-			out_hw = half_w * cone_spread_factor
-			seg.set_segment(origin, end_pt, half_w, out_hw)
-		# Small offset so the next ray doesn't self-intersect with the mirror surface
-		_trace(end_pt + reflected * 2.0, reflected, depth + 1, out_hw)
+			output_half_width = half_w * cone_spread_factor
+			seg.set_segment(origin, end_pt, half_w, output_half_width)
+		_trace(end_pt + reflected * MIRROR_BOUNCE_OFFSET, reflected, depth + 1, output_half_width)
 		return
 
-	# --- Light Receiver ---
 	if collider.has_method("receive_beam"):
 		collider.receive_beam()
 		_hide_from(depth + 1)
 		return
 
-	# --- Wall / floor: beam stops here ---
 	_hide_from(depth + 1)
 
 func _hide_from(start_depth: int) -> void:

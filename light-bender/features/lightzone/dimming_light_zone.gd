@@ -39,17 +39,14 @@ enum LightMode {DIMMING, FLICKERING}
 var _original_polygon: PackedVector2Array
 var _centroid: Vector2
 
-# ── Dimming state ──────────────────────────────────────────────────────────────
 var _elapsed: float = 0.0
-var reversing: bool = false
+var _is_reversing: bool = false
 
-# ── Flickering state ───────────────────────────────────────────────────────────
 enum FlickerPhase {LIGHT_ON, FLICKERING, DARK}
 var _flicker_phase: FlickerPhase = FlickerPhase.LIGHT_ON
 var _flicker_elapsed: float = 0.0
-var _flicker_step: int = 0
+var _flicker_toggle_count: int = 0
 
-# ── Lifecycle ──────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -83,69 +80,70 @@ func _process(delta: float) -> void:
 		LightMode.FLICKERING:
 			_process_flickering(delta)
 
-# ── Dimming logic ──────────────────────────────────────────────────────────────
-
 func _process_dimming(delta: float) -> void:
-	if reversing:
+	if _is_reversing:
 		_elapsed -= delta
 		if _elapsed <= 0.0:
 			_elapsed = 0.0
-			reversing = false
+			_is_reversing = false
 	else:
 		_elapsed += delta
 
 	var t: float = clampf(_elapsed / dim_duration, 0.0, 1.0)
 	_update_polygon(t)
 
-	if not reversing and t >= 1.0:
+	if not _is_reversing and t >= 1.0:
 		_turn_off()
 		if loop:
 			reset_dim()
 
-# ── Flickering logic ───────────────────────────────────────────────────────────
-
 func _process_flickering(delta: float) -> void:
 	match _flicker_phase:
-		FlickerPhase.LIGHT_ON:
-			_flicker_elapsed += delta
-			if _flicker_elapsed >= light_period:
-				_flicker_elapsed = 0.0
-				_flicker_step = 0
-				_flicker_phase = FlickerPhase.FLICKERING
-				hole.visible = false
-		FlickerPhase.FLICKERING:
-			_flicker_elapsed += delta
-			if _flicker_elapsed >= flicker_speed:
-				_flicker_elapsed -= flicker_speed
-				_flicker_step += 1
-				if _flicker_step >= flicker_count * 2:
-					_flicker_phase = FlickerPhase.DARK
-					_flicker_elapsed = 0.0
-					hole.visible = false
-					hitbox.set_deferred("disabled", true)
-					for body in trigger_zone.get_overlapping_bodies():
-						if body.has_method("remove_light_zone"):
-							body.remove_light_zone()
-					if not loop:
-						is_on = false
-				else:
-					hole.visible = (_flicker_step % 2 == 1)
-		FlickerPhase.DARK:
-			_flicker_elapsed += delta
-			if _flicker_elapsed >= dark_period:
-				_flicker_elapsed = 0.0
-				_flicker_phase = FlickerPhase.LIGHT_ON
-				hole.visible = true
-				hitbox.set_deferred("disabled", false)
+		FlickerPhase.LIGHT_ON:   _tick_flicker_light_on(delta)
+		FlickerPhase.FLICKERING: _tick_flicker_flickering(delta)
+		FlickerPhase.DARK:       _tick_flicker_dark(delta)
 
-# ── Public API (callable by Switch / LightReceiver) ────────────────────────────
+func _tick_flicker_light_on(delta: float) -> void:
+	_flicker_elapsed += delta
+	if _flicker_elapsed >= light_period:
+		_flicker_elapsed = 0.0
+		_flicker_toggle_count = 0
+		_flicker_phase = FlickerPhase.FLICKERING
+		hole.visible = false
+
+func _tick_flicker_flickering(delta: float) -> void:
+	_flicker_elapsed += delta
+	if _flicker_elapsed >= flicker_speed:
+		_flicker_elapsed -= flicker_speed
+		_flicker_toggle_count += 1
+		if _flicker_toggle_count >= flicker_count * 2:
+			_flicker_phase = FlickerPhase.DARK
+			_flicker_elapsed = 0.0
+			hole.visible = false
+			hitbox.set_deferred("disabled", true)
+			for body in trigger_zone.get_overlapping_bodies():
+				if body.has_method("remove_light_zone"):
+					body.remove_light_zone()
+			if not loop:
+				is_on = false
+		else:
+			hole.visible = (_flicker_toggle_count % 2 == 1)
+
+func _tick_flicker_dark(delta: float) -> void:
+	_flicker_elapsed += delta
+	if _flicker_elapsed >= dark_period:
+		_flicker_elapsed = 0.0
+		_flicker_phase = FlickerPhase.LIGHT_ON
+		hole.visible = true
+		hitbox.set_deferred("disabled", false)
+
 
 ## Restart from the lit state — works for both DIMMING and FLICKERING.
 func reset_dim() -> void:
 	if light_mode == LightMode.FLICKERING:
 		_flicker_phase = FlickerPhase.LIGHT_ON
 		_flicker_elapsed = 0.0
-		_flicker_step = 0
+		_flicker_toggle_count = 0
 		is_on = true
 		if hole:
 			hole.visible = true
@@ -157,7 +155,7 @@ func reset_dim() -> void:
 		_elapsed = 0.0
 		_update_polygon(0.0)
 	else:
-		reversing = true
+		_is_reversing = true
 	is_on = true
 	if hole:
 		hole.visible = true
@@ -170,8 +168,6 @@ func toggle_light() -> void:
 		_turn_off()
 	else:
 		reset_dim()
-
-# ── Internals ──────────────────────────────────────────────────────────────────
 
 func _update_polygon(t: float) -> void:
 	var new_poly := PackedVector2Array()
@@ -205,8 +201,6 @@ func _compute_centroid(pts: PackedVector2Array) -> Vector2:
 	for p: Vector2 in pts:
 		c += p
 	return c / float(pts.size())
-
-# ── LightZone body tracking ────────────────────────────────────────────────────
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.has_method("add_light_zone"):

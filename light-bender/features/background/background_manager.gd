@@ -1,14 +1,5 @@
 extends CanvasLayer
 
-# ── Usage ─────────────────────────────────────────────────────────────────────
-# BackgroundManager.set_state("idle")           - default
-# BackgroundManager.set_state("active")         - ability / interaction
-# BackgroundManager.set_state("level_complete") - door reached
-# BackgroundManager.set_state("death")          - player died
-#
-# Add new states by adding entries to PRESETS — all keys lerp automatically.
-# ──────────────────────────────────────────────────────────────────────────────
-
 @export_group("Pulse")
 @export var pulse_strength_max: float = 0.8
 @export var pulse_brightness_max: float = 1.5
@@ -16,8 +7,6 @@ extends CanvasLayer
 @export var pulse_duration: float = 0.3
 
 const PRESETS: Dictionary = {
-
-	# Values matched from editor tuning session
 	"idle": {
 		"time_scale": 0.629,
 		"flow_speed": 0.206,
@@ -33,7 +22,6 @@ const PRESETS: Dictionary = {
 		"vignette_pow": 0.269,
 	},
 
-	# Same blue hue but blown out toward white, slightly faster
 	"active": {
 		"time_scale": 0.90,
 		"flow_speed": 0.35,
@@ -49,7 +37,6 @@ const PRESETS: Dictionary = {
 		"vignette_pow": 0.20,
 	},
 
-	# Green, bigger shapes (smaller noise_scale), slower movement
 	"level_complete": {
 		"time_scale": 0.38,
 		"flow_speed": 0.10,
@@ -65,7 +52,6 @@ const PRESETS: Dictionary = {
 		"vignette_pow": 0.25,
 	},
 
-	# Red, smaller shapes (bigger noise_scale), faster chaotic movement
 	"death": {
 		"time_scale": 1.40,
 		"flow_speed": 0.70,
@@ -83,8 +69,8 @@ const PRESETS: Dictionary = {
 }
 
 var _material: ShaderMaterial
-var _current: Dictionary = {}
-var _target: Dictionary = {}
+var _current_state: Dictionary = {}
+var _target_state: Dictionary = {}
 var _lerp_speed: float = 2.0
 
 # Pulse state
@@ -108,11 +94,10 @@ func _ready() -> void:
 	_material.shader = shader
 	rect.material = _material
 
-	_current = _copy(PRESETS["idle"])
-	_target = _copy(PRESETS["idle"])
-	_apply(_current)
+	_current_state = PRESETS["idle"].duplicate(false)
+	_target_state = PRESETS["idle"].duplicate(false)
+	_apply(_current_state)
 
-	# Initialize pulse shader parameters
 	_material.set_shader_parameter("pulse_pos_x", 0.5)
 	_material.set_shader_parameter("pulse_pos_y", 0.5)
 	_material.set_shader_parameter("pulse_strength", 0.0)
@@ -123,17 +108,17 @@ func set_state(state_name: String, speed: float = 2.0) -> void:
 	if not PRESETS.has(state_name):
 		push_warning("BackgroundManager: unknown state '%s'" % state_name)
 		return
-	_target = _copy(PRESETS[state_name])
+	_target_state = PRESETS[state_name].duplicate(false)
 	_lerp_speed = speed
 
 
 func _process(delta: float) -> void:
-	for key: String in _target:
-		var from = _current[key]
-		var to = _target[key]
-		_current[key] = from.lerp(to, _lerp_speed * delta) if from is Color \
+	for key: String in _target_state:
+		var from = _current_state[key]
+		var to = _target_state[key]
+		_current_state[key] = from.lerp(to, _lerp_speed * delta) if from is Color \
 						else lerpf(from, to, _lerp_speed * delta)
-	_apply(_current)
+	_apply(_current_state)
 
 	# Decay pulse effect
 	if _pulse_strength > 0.0 or _pulse_brightness > 0.0:
@@ -146,13 +131,6 @@ func _process(delta: float) -> void:
 func _apply(p: Dictionary) -> void:
 	for key: String in p:
 		_material.set_shader_parameter(key, p[key])
-
-
-func _copy(d: Dictionary) -> Dictionary:
-	var c := {}
-	for k in d:
-		c[k] = d[k]
-	return c
 
 
 func trigger_pulse(screen_pos: Vector2 = Vector2(-1.0, -1.0)) -> void:
