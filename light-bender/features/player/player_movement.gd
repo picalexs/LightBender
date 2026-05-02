@@ -69,7 +69,6 @@ signal wall_slide_state_changed(is_sliding: bool)
 
 # ── Private state ─────────────────────────────────────────────────────────────
 var _facing_right: bool = true
-var held_mirror: Node = null  # set by MirrorBox when carried
 var _is_jumping: bool = false
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
@@ -91,7 +90,7 @@ var active_light_zones: int = 0
 
 func add_light_zone():
 	active_light_zones += 1
-	is_in_light = true 
+	is_in_light = true
 	# As long as we are in at least 1 zone, the floor is solid
 	#set_collision_mask_value(1, true)
 
@@ -172,7 +171,6 @@ func _physics_process(delta: float) -> void:
 		_slow_fall_armed = false
 		
 
-
 # Counts down coyote window and jump buffer each frame; resets coyote on landing.
 func _tick_timers(delta: float, on_floor: bool) -> void:
 	_coyote_timer = coyote_time if on_floor else _coyote_timer - delta
@@ -226,7 +224,7 @@ func _try_jump() -> void:
 
 
 func _do_ground_jump() -> void:
-	velocity.y = -jump_force
+	velocity.y = - jump_force
 	_is_jumping = true
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
@@ -243,7 +241,7 @@ func _do_wall_jump() -> void:
 		jump_normal_x = -1.0 if _facing_right else 1.0
 
 	velocity.x = jump_normal_x * wall_jump_horizontal_force
-	velocity.y = -wall_jump_force
+	velocity.y = - wall_jump_force
 	_is_jumping = true
 	_wall_jump_lock_timer = wall_jump_lock_time
 	_coyote_timer = 0.0
@@ -252,7 +250,7 @@ func _do_wall_jump() -> void:
 
 
 func _do_double_jump() -> void:
-	velocity.y = -double_jump_force
+	velocity.y = - double_jump_force
 	_is_jumping = true
 	_jump_buffer_timer = 0.0
 	_air_jumps_left = max(0, _air_jumps_left - 1)

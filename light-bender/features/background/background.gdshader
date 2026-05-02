@@ -19,6 +19,12 @@ uniform vec4  color_bright : source_color = vec4(0.250, 0.380, 0.950, 1.0);
 uniform float brightness   : hint_range(0.0, 4.0)  = 0.75;
 uniform float vignette_pow : hint_range(0.0, 2.0)  = 0.50;
 
+// ── Pulse ────────────────────────────────────────────────────────────────
+uniform float pulse_pos_x      : hint_range(0.0, 1.0) = 0.5;
+uniform float pulse_pos_y      : hint_range(0.0, 1.0) = 0.5;
+uniform float pulse_strength   : hint_range(0.0, 1.0) = 0.0;
+uniform float pulse_brightness : hint_range(0.0, 3.0) = 0.0;
+
 // ── Gradient noise (gradient Perlin-style, output -1..1) ───────────────────
 vec2 ghash(vec2 p) {
 	p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
@@ -81,6 +87,12 @@ void fragment() {
 	float t = TIME * time_scale;
 	float tf = TIME * flow_speed;
 
+	// ── Pulse displacement ───────────────────────────────────────────────
+	vec2 pulse_uv = vec2(pulse_pos_x, pulse_pos_y);
+	float dist_to_pulse = distance(px_uv, pulse_uv);
+	float pulse_factor = smoothstep(0.3, 0.0, dist_to_pulse) * pulse_strength;
+	uv += normalize(px_uv - pulse_uv) * pulse_factor * 0.8;
+
 	// ── Two-level domain warp (Inigo Quilez) ─────────────────────────────
 	// First warp layer
 	vec2 q = vec2(
@@ -109,13 +121,16 @@ void fragment() {
 	// ── 3-tone color gradient mapped to fluid intensity ───────────────────
 	float f = clamp(fluid * 0.5 + 0.5, 0.0, 1.0);
 
+	// Combine base brightness with pulse brightness boost
+	float effective_brightness = brightness + pulse_brightness;
+
 	vec3 col = color_bg.rgb;
 	col = mix(col, color_mid.rgb,    smoothstep(0.20, 0.58, f));
-	col = mix(col, color_bright.rgb, smoothstep(0.58, 0.88, f) * brightness);
+	col = mix(col, color_bright.rgb, smoothstep(0.58, 0.88, f) * effective_brightness);
 
 	// Additive layers on top
-	col += color_bright.rgb * ridges   * ridge_strength * brightness;
-	col += color_bright.rgb * dots     * dot_strength   * brightness;
+	col += color_bright.rgb * ridges   * ridge_strength * effective_brightness;
+	col += color_bright.rgb * dots     * dot_strength   * effective_brightness;
 
 	// ── Vignette ──────────────────────────────────────────────────────────
 	vec2 vc = px_uv * (1.0 - px_uv);

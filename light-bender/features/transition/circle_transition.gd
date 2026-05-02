@@ -43,8 +43,65 @@ func play_from_target(custom_hold_delay: float = -1.0) -> void:
 		play_from_world_position(_target_node.global_position, custom_hold_delay)
 		return
 
+	var player = _find_player()
+	if player != null:
+		play_from_world_position(player.global_position, custom_hold_delay)
+		return
+
 	if fallback_to_viewport_center:
 		play_from_screen_position(_get_viewport_size() * 0.5, custom_hold_delay)
+
+
+func play_ring_from_target(ring_radius: float = 80.0, ring_hold: float = 0.2, custom_hold_delay: float = -1.0) -> void:
+	_resolve_target()
+	if _target_node != null:
+		_play_ring_from_screen_pos(_world_to_screen(_target_node.global_position), ring_radius, ring_hold, custom_hold_delay)
+		return
+	var player = _find_player()
+	if player != null:
+		_play_ring_from_screen_pos(_world_to_screen(player.global_position), ring_radius, ring_hold, custom_hold_delay)
+		return
+	if fallback_to_viewport_center:
+		_play_ring_from_screen_pos(_get_viewport_size() * 0.5, ring_radius, ring_hold, custom_hold_delay)
+
+
+func play_ring_from_world_position(world_pos: Vector2, ring_radius: float = 80.0, ring_hold: float = 0.2, custom_hold_delay: float = -1.0, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
+	_play_ring_from_screen_pos(_world_to_screen(world_pos), ring_radius, ring_hold, custom_hold_delay, phase1_dur, phase2_dur)
+
+
+func _play_ring_from_screen_pos(screen_pos: Vector2, ring_radius: float, ring_hold: float, custom_hold_delay: float, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
+	_sanitize_settings()
+	_kill_active_tween()
+
+	var clamped_center = _clamp_to_viewport(screen_pos)
+	var max_radius = _radius_to_cover_viewport(clamped_center)
+	var effective_hold = hold_delay if custom_hold_delay < 0.0 else max(0.0, custom_hold_delay)
+	var p1 = phase1_dur if phase1_dur > 0.0 else close_duration * 2.0
+	var p2 = phase2_dur if phase2_dur > 0.0 else close_duration * 1.5
+
+	_overlay.visible = true
+	_set_hole_center(clamped_center)
+	_set_hole_radius(max_radius)
+
+	_is_running = true
+	transition_started.emit()
+
+	_active_tween = create_tween()
+	# Phase 1: close to ring — decelerate into it (QUAD EASE_OUT)
+	_active_tween.tween_method(_set_hole_radius, max_radius, ring_radius, p1) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# Phase 2: brief pause showing the ring around the door
+	_active_tween.tween_interval(ring_hold)
+	# Phase 3: smooth final close — accelerate inward (CUBIC EASE_IN)
+	_active_tween.tween_method(_set_hole_radius, ring_radius, 0.0, p2) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_active_tween.tween_callback(_on_fully_covered)
+	if effective_hold > 0.0:
+		_active_tween.tween_interval(effective_hold)
+	# Open back with ease-out
+	_active_tween.tween_method(_set_hole_radius, 0.0, max_radius, open_duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_active_tween.tween_callback(_on_transition_finished)
 
 
 func play_from_world_position(world_position: Vector2, custom_hold_delay: float = -1.0) -> void:
@@ -99,7 +156,26 @@ func _resolve_target() -> void:
 
 	var candidate = get_node_or_null(target_path)
 	if candidate is Node2D:
-		_target_node = candidate
+		_target_node = candidate as Node2D
+
+
+func _find_player() -> Node2D:
+	var candidate: Node
+	candidate = get_node_or_null(NodePath("/root/BaseLevel/Player"))
+	if candidate is Node2D:
+		return candidate as Node2D
+	candidate = get_node_or_null(NodePath("../Player"))
+	if candidate is Node2D:
+		return candidate as Node2D
+	candidate = get_node_or_null(NodePath("../../Player"))
+	if candidate is Node2D:
+		return candidate as Node2D
+	var root = get_tree().current_scene
+	if root != null:
+		candidate = root.find_child("Player", true, false)
+		if candidate is Node2D:
+			return candidate as Node2D
+	return null
 
 
 func _sanitize_settings() -> void:

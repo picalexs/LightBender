@@ -1,20 +1,18 @@
-extends StaticBody2D
+extends RigidBody2D
 
-## MirrorBox — a carriable mirror the player picks up and drops.
+## MirrorBox — a physics-enabled carriable mirror.
 ##
 ## Scene setup:
-##   MirrorBox (StaticBody2D)  ← this script, collision layer 1
-##     CollisionShape2D        ← thin rectangle (e.g. 6 x 48)
-##     PickupZone (Area2D)     ← slightly larger, mask 2 (player layer)
-##       CollisionShape2D      ← pickup radius (e.g. circle r=36)
-##     MirrorLine (Line2D)     ← visual; two points e.g. (-24,0) and (24,0)
+##   MirrorBox (RigidBody2D)  ← this script, collision layer 1, lock_rotation = true
+##     CollisionShape2D       ← thin horizontal rectangle (e.g. 48 x 4)
+##     Body (Polygon2D)       ← box visual
+##     MirrorLine (Line2D)    ← mirror surface visual
 ##
-## Controls:
-##   lb_pickup  (F) — pick up / drop
-##   lb_rotate  (R) — rotate 45° clockwise while carrying
+## Pickup is handled by PlayerPickupController on the player.
+## Starts at 45° diagonal. Rotate with lb_rotate (R) while carried.
 
 ## Mirror types
-enum MirrorType { FLAT, CONE }
+enum MirrorType {FLAT, CONE}
 
 @export var mirror_type: MirrorType = MirrorType.FLAT
 
@@ -23,72 +21,43 @@ enum MirrorType { FLAT, CONE }
 ## How high above the player centre the mirror hovers (pixels)
 @export var carry_up_offset: float = -16.0
 
-@onready var pickup_zone: Area2D = $PickupZone
-@onready var mirror_line: Line2D = $MirrorLine  # optional visual
+@onready var mirror_line: Line2D = $MirrorLine
 
-var is_cone_mirror: bool  # read by BeamSource
-var _rotation_index: int = 0  # 0-7 → 0°, 45°, 90° … 315°
+var is_cone_mirror: bool # read by BeamSource
+var _rotation_index: int = 1 # 0-7 → 0°, 45°, 90° … 315°; 1 = 45° diagonal
 var _carrier: Node = null
-var _player_in_zone: bool = false
 
 func _ready() -> void:
 	is_cone_mirror = (mirror_type == MirrorType.CONE)
-	pickup_zone.body_entered.connect(_on_pickup_entered)
-	pickup_zone.body_exited.connect(_on_pickup_exited)
 	_apply_rotation()
 
 func _physics_process(_delta: float) -> void:
 	if _carrier == null:
 		return
-	# Float in front of the player
+	# Follow the carrier, floating in front
 	var facing: float = 1.0 if _carrier.get("_facing_right") else -1.0
 	global_position = _carrier.global_position \
 		+ Vector2(facing * carry_forward_offset, carry_up_offset)
 
-func _unhandled_input(event: InputEvent) -> void:
-	# Pick up / drop
-	if event.is_action_pressed("lb_pickup"):
-		if _carrier != null:
-			_drop()
-		elif _player_in_zone:
-			_pick_up()
+# ── Pickup interface — called by PlayerPickupController ────────────────────────
 
-	# Rotate while carried
-	if event.is_action_pressed("lb_rotate") and _carrier != null:
-		_rotation_index = (_rotation_index + 1) % 8
-		_apply_rotation()
+func pickup(carrier: Node) -> void:
+	_carrier = carrier
+	freeze = true
+	collision_layer = 0
+	collision_mask = 0
 
-# ── Carry helpers ─────────────────────────────────────────────────────────────
-
-func _pick_up() -> void:
-	# Find the player body that is in the pickup zone
-	for body in pickup_zone.get_overlapping_bodies():
-		if "Player" in body.name:
-			# Drop any mirror the player is already holding
-			var prev = body.get("held_mirror")
-			if prev and prev != self and prev.has_method("_drop"):
-				prev._drop()
-			_carrier = body
-			body.set("held_mirror", self)
-			return
-
-func _drop() -> void:
-	if _carrier != null:
-		_carrier.set("held_mirror", null)
+func drop() -> void:
 	_carrier = null
+	collision_layer = 1
+	collision_mask = 1
+	freeze = false
 
-# ── Pickup zone tracking ───────────────────────────────────────────────────────
+# ── Rotation — called by PlayerPickupController on lb_rotate ──────────────────
 
-func _on_pickup_entered(body: Node2D) -> void:
-	if "Player" in body.name:
-		_player_in_zone = true
-
-func _on_pickup_exited(body: Node2D) -> void:
-	if "Player" in body.name:
-		_player_in_zone = false
-		# Auto-drop if player walks too far away
-		if _carrier == body:
-			_drop()
+func rotate_mirror() -> void:
+	_rotation_index = (_rotation_index + 1) % 8
+	_apply_rotation()
 
 # ── Mirror surface logic ───────────────────────────────────────────────────────
 

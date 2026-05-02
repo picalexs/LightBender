@@ -10,6 +10,7 @@
 [ext_resource type="AudioStream" uid="uid://bfd5hk81lc2t5" path="res://assets/audio/jump.wav" id="8_jump_sfx"]
 [ext_resource type="AudioStream" uid="uid://bf6p51nsfvxn" path="res://assets/audio/dash.wav" id="9_dash_sfx"]
 [ext_resource type="Script" uid="uid://dtbahbfvrv3wf" path="res://features/audio/player_sfx_controller.gd" id="10_player_sfx_controller"]
+[ext_resource type="Script" path="res://features/player/player_pickup_controller.gd" id="11_pckup"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fcb3x"]
 radius = 7.9
@@ -53,6 +54,9 @@ loop = true
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_47rrt"]
 size = Vector2(12, 5)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_pu"]
+radius = 48.0
+
 [node name="Player" type="CharacterBody2D" unique_id=640300134]
 z_index = 5
 collision_layer = 2
@@ -90,3 +94,11 @@ collision_layer = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SafetyScanner" unique_id=2044314949]
 position = Vector2(0, -2.5)
 shape = SubResource("RectangleShape2D_47rrt")
+
+[node name="PickupController" type="Area2D" parent="." unique_id=321654987]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("11_pckup")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupController" unique_id=123456789]
+shape = SubResource("CircleShape2D_pu")
