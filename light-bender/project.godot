@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="LightBender"
-run/main_scene="uid://ed3fdsvy82c8"
+run/main_scene="res://ui/level_selector/level_selector.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 Global="*uid://b340w2qoelw87"
+LevelManager="*res://features/level_manager/level_manager.gd"
 BackgroundManager="*uid://iufps20rdm22"
 GodotAIBridgeRuntime="*uid://d2q1g4sgk4ffg"
 CircleTransition="*res://features/transition/circle_transition.tscn"

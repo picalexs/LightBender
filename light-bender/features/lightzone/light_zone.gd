@@ -8,7 +8,7 @@ const LIGHT_AFFECTED_MASK: int = 6
 @export_range(0.05, 1.0, 0.01) var trigger_scale: float = 1.0
 @export_range(0.0, 1.0, 0.01) var core_alpha: float = 1.0
 @export var penumbra_size: float = 50.0
-@export_range(1, 32, 1) var penumbra_steps: int = 8
+@export_range(1, 32, 1) var penumbra_steps: int = 4
 @export_range(0.0, 1.0, 0.01) var penumbra_alpha: float = 1.0
 @export var safe_zone_extra: float = 30.0
 

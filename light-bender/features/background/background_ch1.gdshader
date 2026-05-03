@@ -6,16 +6,16 @@ uniform float time_scale    : hint_range(0.0, 5.0)  = 0.5;
 uniform float flow_speed    : hint_range(0.0, 3.0)  = 0.3;
 
 // ── Shape ──────────────────────────────────────────────────────────────────
-uniform float pixel_size    : hint_range(1.0, 64.0) = 5.0;
-uniform float noise_scale   : hint_range(0.5, 12.0) = 3.5;
+uniform float pixel_size    : hint_range(1.0, 64.0) = 6.0;
+uniform float noise_scale   : hint_range(0.5, 12.0) = 2.8;
 uniform float warp_strength : hint_range(0.0, 6.0)  = 2.5;
-uniform float ridge_strength: hint_range(0.0, 2.0)  = 0.25;
-uniform float dot_strength  : hint_range(0.0, 2.0)  = 0.20;
+uniform float ridge_strength: hint_range(0.0, 2.0)  = 0.35;
+uniform float dot_strength  : hint_range(0.0, 2.0)  = 0.55;
 
 // ── Color (3-tone gradient: dark base → dim element → bright peak) ─────────
-uniform vec4  color_bg     : source_color = vec4(0.020, 0.018, 0.050, 1.0);
-uniform vec4  color_mid    : source_color = vec4(0.055, 0.080, 0.380, 1.0);
-uniform vec4  color_bright : source_color = vec4(0.250, 0.380, 0.950, 1.0);
+uniform vec4  color_bg     : source_color = vec4(0.004, 0.006, 0.024, 1.0);
+uniform vec4  color_mid    : source_color = vec4(0.080, 0.105, 0.500, 1.0);
+uniform vec4  color_bright : source_color = vec4(0.290, 0.390, 0.930, 1.0);
 uniform float brightness   : hint_range(0.0, 4.0)  = 0.75;
 uniform float vignette_pow : hint_range(0.0, 2.0)  = 0.50;
 
@@ -42,8 +42,7 @@ float noise(vec2 p) {
 		    dot(ghash(i + vec2(1,1)), f - vec2(1,1)), u.x), u.y);
 }
 
-// Rotation-based FBM — rotates coords per octave to break axis alignment.
-// 4 octaves, manually unrolled for GL Compatibility.
+// Rotation-based FBM — 4 octaves, manually unrolled for GL Compatibility.
 float fbm(vec2 p) {
 	mat2 m = mat2(vec2(1.6, 1.2), vec2(-1.2, 1.6));
 	float v = 0.0;
@@ -89,9 +88,11 @@ void fragment() {
 
 	// ── Pulse displacement ───────────────────────────────────────────────
 	vec2 pulse_uv = vec2(pulse_pos_x, pulse_pos_y);
-	float dist_to_pulse = distance(px_uv, pulse_uv);
+	vec2 pulse_delta = px_uv - pulse_uv;
+	float dist_to_pulse = length(pulse_delta);
 	float pulse_factor = smoothstep(0.3, 0.0, dist_to_pulse) * pulse_strength;
-	uv += normalize(px_uv - pulse_uv) * pulse_factor * 0.8;
+	vec2 pulse_dir = pulse_delta / max(dist_to_pulse, 0.0001);
+	uv += pulse_dir * pulse_factor * 0.8;
 
 	// ── Two-level domain warp (Inigo Quilez) ─────────────────────────────
 	vec2 q = vec2(
@@ -107,12 +108,18 @@ void fragment() {
 	float fluid = fbm(uv + warp_strength * r);
 
 	// ── Ridged noise layer (sharp bright veins) ───────────────────────────
-	float ridge_raw = fbm(uv * 1.4 + q * 0.6 + tf * 0.35);
-	float ridges = pow(1.0 - abs(ridge_raw) * 1.8, 5.0);
-	ridges = clamp(ridges, 0.0, 1.0);
+	float ridges = 0.0;
+	if (ridge_strength > 0.02) {
+		float ridge_raw = fbm(uv * 1.4 + q * 0.6 + tf * 0.35);
+		ridges = pow(1.0 - abs(ridge_raw) * 1.8, 5.0);
+		ridges = clamp(ridges, 0.0, 1.0);
+	}
 
 	// ── Voronoi dots layer ────────────────────────────────────────────────
-	float dots = voronoi_dots(uv * 0.8 + r * 0.3, t);
+	float dots = 0.0;
+	if (dot_strength > 0.02) {
+		dots = voronoi_dots(uv * 0.8 + r * 0.3, t);
+	}
 
 	// ── 3-tone color gradient mapped to fluid intensity ───────────────────
 	float f = clamp(fluid * 0.5 + 0.5, 0.0, 1.0);

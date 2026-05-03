@@ -1,8 +1,12 @@
 extends RigidBody2D
 
-const LIGHT_POLYGON_POINTS: int = 64
+const LIGHT_POLYGON_POINTS: int = 32
 const HELD_COLLISION_LAYER: int = 2
 const ITEM_COLLISION_LAYER: int = 4
+const DISCHARGE_RADIUS_EPS: float = 2.0
+const PENUMBRA_SIZE_EPS: float = 0.5
+const STYLE_ALPHA_EPS: float = 0.02
+const STYLE_SCALE_EPS: float = 0.02
 const BATTERY_OFF_TEXTURE: Texture2D = preload("res://assets/sprites/Battery_OFF.png")
 const BATTERY_ON_TEXTURE: Texture2D = preload("res://assets/sprites/Battery_ON.png")
 
@@ -45,6 +49,11 @@ var _current_core_alpha: float = 1.0
 var _target_core_scale: float = 1.0
 var _target_core_alpha: float = 1.0
 var _was_in_low_power: bool = false
+var _applied_penumbra_size: float = -1.0
+var _applied_penumbra_alpha: float = -1.0
+var _applied_penumbra_steps: int = -1
+var _applied_core_scale: float = -1.0
+var _applied_core_alpha: float = -1.0
 
 
 func _ready() -> void:
@@ -74,7 +83,6 @@ func _physics_process(delta: float) -> void:
 	_sync_discharge_light_transform()
 
 	var was_recharging: bool = is_in_light
-	refresh_light_state()
 	if is_in_light:
 		_charge_ratio = 1.0
 		_flicker_time = 0.0
@@ -145,6 +153,9 @@ func pickup(carrier: Node) -> void:
 	angular_velocity = 0.0
 	sleeping = true
 	_set_physics_state(true)
+	if _holder != null:
+		global_position = _holder.global_position
+	_sync_discharge_light_transform()
 	refresh_light_state()
 
 
@@ -207,10 +218,14 @@ func _update_discharge_radius(radius: float) -> void:
 	if discharge_light == null:
 		return
 
-	_current_discharge_radius = radius
-	var polygon: PackedVector2Array = _make_circle_polygon(radius, LIGHT_POLYGON_POINTS)
+	var clamped_radius := maxf(radius, 0.0)
+	if absf(clamped_radius - _current_discharge_radius) < DISCHARGE_RADIUS_EPS:
+		return
+
+	_current_discharge_radius = clamped_radius
+	var polygon: PackedVector2Array = _make_circle_polygon(clamped_radius, LIGHT_POLYGON_POINTS)
 	discharge_light.polygon = polygon
-	_apply_penumbra_for_radius(radius)
+	_apply_penumbra_for_radius(clamped_radius)
 
 
 func _apply_penumbra_for_radius(radius: float) -> void:
@@ -234,15 +249,6 @@ func _get_base_penumbra_size(radius: float) -> float:
 	return minf(max_penumbra_size, radius * penumbra_radius_ratio)
 
 
-func _set_discharge_penumbra(size: float, alpha: float = max_penumbra_alpha) -> void:
-	if discharge_light == null:
-		return
-	if "penumbra_size" in discharge_light:
-		discharge_light.penumbra_size = maxf(size, 0.0)
-	if "penumbra_alpha" in discharge_light:
-		discharge_light.penumbra_alpha = clampf(alpha, 0.0, 1.0)
-
-
 func _update_penumbra_visual(delta: float, snap: bool = false) -> void:
 	if discharge_light == null:
 		return
@@ -261,20 +267,42 @@ func _update_penumbra_visual(delta: float, snap: bool = false) -> void:
 		_current_core_scale = lerpf(_current_core_scale, _target_core_scale, weight)
 		_current_core_alpha = lerpf(_current_core_alpha, _target_core_alpha, weight)
 
-	_set_discharge_penumbra(_current_penumbra_size, _current_penumbra_alpha)
-	_apply_discharge_core_style(_current_penumbra_steps, _current_core_scale, _current_core_alpha)
+	_apply_discharge_visual_style(snap)
 
 
-func _apply_discharge_core_style(step_count: float, core_scale: float, core_alpha: float) -> void:
+func _apply_discharge_visual_style(force: bool = false) -> void:
 	if discharge_light == null:
 		return
-	if "penumbra_steps" in discharge_light:
-		discharge_light.penumbra_steps = maxi(int(round(step_count)), 1)
-	if "core_scale" in discharge_light:
-		discharge_light.core_scale = clampf(core_scale, 0.05, 1.0)
-	if "core_alpha" in discharge_light:
-		discharge_light.core_alpha = clampf(core_alpha, 0.0, 1.0)
-	if discharge_light.has_method("refresh_geometry"):
+
+	var next_penumbra_size := maxf(_current_penumbra_size, 0.0)
+	var next_penumbra_alpha := clampf(_current_penumbra_alpha, 0.0, 1.0)
+	var next_penumbra_steps := maxi(int(round(_current_penumbra_steps)), 1)
+	var next_core_scale := clampf(_current_core_scale, 0.05, 1.0)
+	var next_core_alpha := clampf(_current_core_alpha, 0.0, 1.0)
+	var geometry_changed := false
+
+	if "penumbra_size" in discharge_light and (force or _applied_penumbra_size < 0.0 or absf(next_penumbra_size - _applied_penumbra_size) >= PENUMBRA_SIZE_EPS):
+		discharge_light.penumbra_size = next_penumbra_size
+		_applied_penumbra_size = next_penumbra_size
+		geometry_changed = true
+	if "penumbra_alpha" in discharge_light and (force or _applied_penumbra_alpha < 0.0 or absf(next_penumbra_alpha - _applied_penumbra_alpha) >= STYLE_ALPHA_EPS):
+		discharge_light.penumbra_alpha = next_penumbra_alpha
+		_applied_penumbra_alpha = next_penumbra_alpha
+		geometry_changed = true
+	if "penumbra_steps" in discharge_light and (force or next_penumbra_steps != _applied_penumbra_steps):
+		discharge_light.penumbra_steps = next_penumbra_steps
+		_applied_penumbra_steps = next_penumbra_steps
+		geometry_changed = true
+	if "core_scale" in discharge_light and (force or _applied_core_scale < 0.0 or absf(next_core_scale - _applied_core_scale) >= STYLE_SCALE_EPS):
+		discharge_light.core_scale = next_core_scale
+		_applied_core_scale = next_core_scale
+		geometry_changed = true
+	if "core_alpha" in discharge_light and (force or _applied_core_alpha < 0.0 or absf(next_core_alpha - _applied_core_alpha) >= STYLE_ALPHA_EPS):
+		discharge_light.core_alpha = next_core_alpha
+		_applied_core_alpha = next_core_alpha
+		geometry_changed = true
+
+	if geometry_changed and discharge_light.has_method("refresh_geometry"):
 		discharge_light.refresh_geometry()
 
 
@@ -325,11 +353,11 @@ func get_owned_light_sources() -> Array[Node]:
 
 
 func refresh_light_state() -> void:
-	if _light_receiver == null:
-		return
-	_light_receiver.refresh_light_state()
-	active_light_zones = _light_receiver.active_light_zones
-	is_in_light = _light_receiver.is_in_light
+	if _light_receiver != null:
+		_light_receiver.refresh_light_state()
+		active_light_zones = _light_receiver.active_light_zones
+		is_in_light = _light_receiver.is_in_light
+	_sync_discharge_light_overlaps()
 
 
 func _on_light_receiver_state_changed(now_in_light: bool) -> void:
@@ -354,6 +382,11 @@ func _sync_discharge_light_transform() -> void:
 	if discharge_light_node == null:
 		return
 	discharge_light_node.global_transform = global_transform * _discharge_light_relative_transform
+
+
+func _sync_discharge_light_overlaps() -> void:
+	if discharge_light != null and discharge_light.has_method("_sync_current_overlaps"):
+		discharge_light.call("_sync_current_overlaps")
 
 
 func _make_circle_polygon(radius: float, point_count: int) -> PackedVector2Array:

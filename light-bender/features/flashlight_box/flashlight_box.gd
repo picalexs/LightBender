@@ -42,8 +42,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if _holder != null:
 		global_position = _holder.global_position
-	_sync_controlled_light_zone_transforms()
-	_sync_light_state()
+		_sync_controlled_light_zone_transforms()
 
 
 func add_light_zone() -> void:
@@ -82,6 +81,9 @@ func pickup(carrier: Node) -> void:
 	angular_velocity = 0.0
 	sleeping = true
 	_set_physics_state(true)
+	if _holder != null:
+		global_position = _holder.global_position
+	_sync_controlled_light_zone_transforms()
 	refresh_light_state()
 
 
@@ -98,16 +100,8 @@ func prepare_drop_state(_drop_position: Vector2) -> void:
 func rotate_mirror() -> void:
 	_rotation_index = (_rotation_index + 1) % ROTATION_STEP_COUNT
 	_apply_rotation()
-
-
-func _sync_light_state() -> void:
-	var was_in_light := is_in_light
+	_sync_controlled_light_zone_transforms()
 	refresh_light_state()
-	if was_in_light == is_in_light:
-		return
-
-	_set_child_light_zones(is_in_light)
-	_update_visual_state()
 
 
 func _set_child_light_zones(enable: bool) -> void:
@@ -168,11 +162,11 @@ func get_owned_light_sources() -> Array[Node]:
 
 
 func refresh_light_state() -> void:
-	if _light_receiver == null:
-		return
-	_light_receiver.refresh_light_state()
-	active_light_zones = _light_receiver.active_light_zones
-	is_in_light = _light_receiver.is_in_light
+	if _light_receiver != null:
+		_light_receiver.refresh_light_state()
+		active_light_zones = _light_receiver.active_light_zones
+		is_in_light = _light_receiver.is_in_light
+	_sync_controlled_light_zone_overlaps()
 
 
 func _on_light_receiver_state_changed(now_in_light: bool) -> void:
@@ -212,3 +206,12 @@ func _sync_controlled_light_zone_transforms() -> void:
 			continue
 		var relative_transform: Transform2D = light_zone_data.get("relative_transform")
 		light_zone.global_transform = global_transform * relative_transform
+
+
+func _sync_controlled_light_zone_overlaps() -> void:
+	for light_zone_data in _controlled_light_zones:
+		var light_zone: Node = light_zone_data.get("node")
+		if not is_instance_valid(light_zone):
+			continue
+		if light_zone.has_method("_sync_current_overlaps"):
+			light_zone.call("_sync_current_overlaps")

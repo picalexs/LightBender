@@ -48,8 +48,6 @@ func _physics_process(_delta: float) -> void:
 	if _holder != null:
 		global_position = _holder.global_position
 
-	refresh_light_state()
-
 	if trigger_on_change:
 		if is_in_light != _was_active:
 			_fire_target(is_in_light)
@@ -97,6 +95,8 @@ func pickup(carrier: Node) -> void:
 	angular_velocity = 0.0
 	sleeping = true
 	_set_physics_state(true)
+	if _holder != null:
+		global_position = _holder.global_position
 	refresh_light_state()
 
 

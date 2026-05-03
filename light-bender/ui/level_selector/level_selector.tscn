@@ -1,0 +1,252 @@
+[gd_scene format=3 uid="uid://b4ngbyt7mkgvi"]
+
+[ext_resource type="Script" uid="uid://dmsj2uyynmuhl" path="res://ui/level_selector/level_selector.gd" id="1_selector"]
+[ext_resource type="Script" uid="uid://cxqy3ruauwmpi" path="res://ui/level_selector/level_graph_lines.gd" id="2_lines"]
+[ext_resource type="Shader" uid="uid://30w68dyurygc" path="res://features/background/background_menu.gdshader" id="3_bg_shader"]
+[ext_resource type="FontFile" uid="uid://dwttcgep1o3nx" path="res://assets/pixelfont.ttf" id="4_font"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu/pause_menu.tscn" id="5_pause_menu"]
+[ext_resource type="Texture2D" uid="uid://duwks8sj13qhm" path="res://assets/sprites/Reset_Button.png" id="6_reset_button"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
+shader = ExtResource("3_bg_shader")
+shader_parameter/time_scale = 0.15
+shader_parameter/flow_speed = 0.16
+shader_parameter/pixel_size = 8.0
+shader_parameter/noise_scale = 2.3
+shader_parameter/warp_strength = 2.1
+shader_parameter/ridge_strength = 0.42
+shader_parameter/dot_strength = 0.22
+shader_parameter/color_bg = Color(0.008, 0.01, 0.026, 1)
+shader_parameter/color_mid = Color(0.04, 0.12, 0.24, 1)
+shader_parameter/color_bright = Color(0.62, 0.76, 0.86, 1)
+shader_parameter/brightness = 0.68
+shader_parameter/vignette_pow = 0.45
+shader_parameter/manual_time = 0.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_4mcgw"]
+font = ExtResource("4_font")
+font_size = 32
+font_color = Color(1, 1, 0.654902, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ep43k"]
+font = ExtResource("4_font")
+font_size = 32
+font_color = Color(0.38950002, 0.95, 0.47357494, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_lubdc"]
+font = ExtResource("4_font")
+font_size = 32
+font_color = Color(0.89, 0.5429, 0.89, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_2vppu"]
+font = ExtResource("4_font")
+font_size = 86
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip_panel"]
+bg_color = Color(0.02, 0.025, 0.04, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.22, 0.34, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_reset_normal"]
+texture = ExtResource("6_reset_button")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+modulate_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_reset_pressed"]
+texture = ExtResource("6_reset_button")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+modulate_color = Color(0.82, 0.82, 0.82, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_reset_hover"]
+texture = ExtResource("6_reset_button")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+modulate_color = Color(1, 1, 1, 1)
+
+[node name="LevelSelector" type="Control" unique_id=1312055036]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_selector")
+
+[node name="BackgroundViewport" type="SubViewportContainer" parent="." unique_id=1058470346]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="BackgroundViewport" unique_id=1027285715]
+disable_3d = true
+handle_input_locally = false
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="BackgroundRect" type="ColorRect" parent="BackgroundViewport/SubViewport" unique_id=404375052]
+material = SubResource("ShaderMaterial_background")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ScreenOverlay" type="ColorRect" parent="." unique_id=1055345095]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.03, 0.08, 0.16)
+
+[node name="ChapterLabels" type="Control" parent="." unique_id=2117240428]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Chapter1Label" type="Label" parent="ChapterLabels" unique_id=310845127]
+layout_mode = 0
+offset_left = 38.0
+offset_top = 240.0
+offset_right = 298.0
+offset_bottom = 280.0
+theme_override_colors/font_color = Color(0.5, 0.75, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+text = "Chapter I - Light"
+label_settings = SubResource("LabelSettings_4mcgw")
+vertical_alignment = 1
+
+[node name="Chapter2Label" type="Label" parent="ChapterLabels" unique_id=1538385426]
+layout_mode = 0
+offset_left = 38.0
+offset_top = 510.0
+offset_right = 298.0
+offset_bottom = 550.0
+theme_override_colors/font_color = Color(0.35, 1, 0.78, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+text = "Chapter II - Flow"
+label_settings = SubResource("LabelSettings_ep43k")
+vertical_alignment = 1
+
+[node name="Chapter3Label" type="Label" parent="ChapterLabels" unique_id=656516407]
+layout_mode = 0
+offset_left = 38.0
+offset_top = 780.0
+offset_right = 398.0
+offset_bottom = 820.0
+theme_override_colors/font_color = Color(1, 0.48, 0.88, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+text = "Chapter III - Convergence"
+label_settings = SubResource("LabelSettings_lubdc")
+vertical_alignment = 1
+
+[node name="GraphLayer" type="Control" parent="." unique_id=432757886]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="GraphLines" type="Control" parent="GraphLayer" unique_id=1271505433]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_lines")
+
+[node name="LevelNodes" type="Control" parent="GraphLayer" unique_id=1031436207]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="." unique_id=218023183]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 37.0
+offset_bottom = 103.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.88, 0.92, 1, 0.94)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 48
+text = "Level Selector"
+label_settings = SubResource("LabelSettings_2vppu")
+horizontal_alignment = 1
+
+[node name="Tooltip" type="PanelContainer" parent="." unique_id=1101027197]
+visible = false
+layout_mode = 0
+offset_right = 1.0
+offset_bottom = 1.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tooltip_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="Tooltip" unique_id=388519151]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="TipLabel" type="Label" parent="Tooltip/MarginContainer" unique_id=1925276278]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.92, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResetSaveButton" type="Button" parent="." unique_id=673323219]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -64.0
+offset_top = -64.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxTexture_reset_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_reset_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_reset_hover")
+theme_override_styles/focus = SubResource("StyleBoxTexture_reset_hover")
+text = ""
+
+[node name="PauseMenu" parent="." unique_id=248066764 instance=ExtResource("5_pause_menu")]
+is_in_level = false

@@ -42,8 +42,7 @@ float noise(vec2 p) {
 		    dot(ghash(i + vec2(1,1)), f - vec2(1,1)), u.x), u.y);
 }
 
-// Rotation-based FBM — rotates coords per octave to break axis alignment.
-// 4 octaves, manually unrolled for GL Compatibility.
+// Rotation-based FBM — 4 octaves, manually unrolled for GL Compatibility.
 float fbm(vec2 p) {
 	mat2 m = mat2(vec2(1.6, 1.2), vec2(-1.2, 1.6));
 	float v = 0.0;
@@ -89,18 +88,18 @@ void fragment() {
 
 	// ── Pulse displacement ───────────────────────────────────────────────
 	vec2 pulse_uv = vec2(pulse_pos_x, pulse_pos_y);
-	float dist_to_pulse = distance(px_uv, pulse_uv);
+	vec2 pulse_delta = px_uv - pulse_uv;
+	float dist_to_pulse = length(pulse_delta);
 	float pulse_factor = smoothstep(0.3, 0.0, dist_to_pulse) * pulse_strength;
-	uv += normalize(px_uv - pulse_uv) * pulse_factor * 0.8;
+	vec2 pulse_dir = pulse_delta / max(dist_to_pulse, 0.0001);
+	uv += pulse_dir * pulse_factor * 0.8;
 
 	// ── Two-level domain warp (Inigo Quilez) ─────────────────────────────
-	// First warp layer
 	vec2 q = vec2(
 		fbm(uv + vec2(0.00, 0.00) + tf),
 		fbm(uv + vec2(5.20, 1.30) + tf * 0.7)
 	);
 
-	// Second warp layer (warps the warped coords)
 	vec2 r = vec2(
 		fbm(uv + warp_strength * q + vec2(1.7, 9.2) + tf * 0.5),
 		fbm(uv + warp_strength * q + vec2(8.3, 2.8) + tf * 0.4)
@@ -110,13 +109,18 @@ void fragment() {
 	float fluid = fbm(uv + warp_strength * r);
 
 	// ── Ridged noise layer (sharp bright veins) ───────────────────────────
-	float ridge_raw = fbm(uv * 1.4 + q * 0.6 + tf * 0.35);
-	// Ridges live at zero-crossings of noise → invert abs
-	float ridges = pow(1.0 - abs(ridge_raw) * 1.8, 5.0);
-	ridges = clamp(ridges, 0.0, 1.0);
+	float ridges = 0.0;
+	if (ridge_strength > 0.02) {
+		float ridge_raw = fbm(uv * 1.4 + q * 0.6 + tf * 0.35);
+		ridges = pow(1.0 - abs(ridge_raw) * 1.8, 5.0);
+		ridges = clamp(ridges, 0.0, 1.0);
+	}
 
 	// ── Voronoi dots layer ────────────────────────────────────────────────
-	float dots = voronoi_dots(uv * 0.8 + r * 0.3, t);
+	float dots = 0.0;
+	if (dot_strength > 0.02) {
+		dots = voronoi_dots(uv * 0.8 + r * 0.3, t);
+	}
 
 	// ── 3-tone color gradient mapped to fluid intensity ───────────────────
 	float f = clamp(fluid * 0.5 + 0.5, 0.0, 1.0);

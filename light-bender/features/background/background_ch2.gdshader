@@ -49,9 +49,7 @@ float fbm(vec2 p) {
 	mat2 m = mat2(vec2(1.6, 1.2), vec2(-1.2, 1.6));
 	float v = 0.0;
 	v += 0.5000 * noise(p); p = m * p;
-	v += 0.2500 * noise(p); p = m * p;
-	v += 0.1250 * noise(p); p = m * p;
-	v += 0.0625 * noise(p);
+	v += 0.2500 * noise(p);
 	return v;
 }
 
@@ -99,9 +97,11 @@ void fragment() {
 
 	// ── Pulse displacement ────────────────────────────────────────────────
 	vec2 pulse_uv = vec2(pulse_pos_x, pulse_pos_y);
-	float dist_to_pulse = distance(px_uv, pulse_uv);
+	vec2 pulse_delta = px_uv - pulse_uv;
+	float dist_to_pulse = length(pulse_delta);
 	float pulse_factor = smoothstep(0.3, 0.0, dist_to_pulse) * pulse_strength;
-	uv += normalize(px_uv - pulse_uv) * pulse_factor * 0.8;
+	vec2 pulse_dir = pulse_delta / max(dist_to_pulse, 0.0001);
+	uv += pulse_dir * pulse_factor * 0.8;
 
 	// ── Light FBM warp: subtle organic undulation at border edges ───────────
 	// Low coefficient keeps cell shapes recognizably square.

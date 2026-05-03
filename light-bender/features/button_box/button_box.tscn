@@ -24,6 +24,7 @@ shape = SubResource("RectangleShape2D_button")
 collision_layer = 2
 collision_mask = 0
 script = ExtResource("3_light_receiver")
+auto_refresh = true
 dim_when_dark = false
 
 [node name="VisualSprite" type="Sprite2D" parent="."]

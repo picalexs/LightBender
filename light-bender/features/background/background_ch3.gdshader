@@ -9,16 +9,16 @@ uniform float flow_speed    : hint_range(0.0, 3.0)  = 0.3;
 // warp_strength: FBM wobble on blob surfaces + controls smin merge softness
 // ridge_strength: brightness of the bright surface-tension highlight ring
 // dot_strength: intensity of the outer halo glow around each blob
-uniform float pixel_size    : hint_range(1.0, 64.0) = 5.0;
-uniform float noise_scale   : hint_range(0.5, 12.0) = 3.5;
+uniform float pixel_size    : hint_range(1.0, 64.0) = 6.0;
+uniform float noise_scale   : hint_range(0.5, 12.0) = 3.0;
 uniform float warp_strength : hint_range(0.0, 6.0)  = 2.5;
 uniform float ridge_strength: hint_range(0.0, 2.0)  = 0.50;
-uniform float dot_strength  : hint_range(0.0, 2.0)  = 0.40;
+uniform float dot_strength  : hint_range(0.0, 2.0)  = 0.60;
 
 // ── Color ──────────────────────────────────────────────────────────────────
-uniform vec4  color_bg     : source_color = vec4(0.010, 0.003, 0.018, 1.0);
-uniform vec4  color_mid    : source_color = vec4(0.130, 0.015, 0.200, 1.0);
-uniform vec4  color_bright : source_color = vec4(0.960, 0.090, 0.820, 1.0);
+uniform vec4  color_bg     : source_color = vec4(0.010, 0.002, 0.018, 1.0);
+uniform vec4  color_mid    : source_color = vec4(0.190, 0.030, 0.300, 1.0);
+uniform vec4  color_bright : source_color = vec4(0.920, 0.090, 0.760, 1.0);
 uniform float brightness   : hint_range(0.0, 4.0)  = 0.75;
 uniform float vignette_pow : hint_range(0.0, 2.0)  = 0.50;
 
@@ -49,9 +49,7 @@ float fbm(vec2 p) {
 	mat2 m = mat2(vec2(1.6, 1.2), vec2(-1.2, 1.6));
 	float v = 0.0;
 	v += 0.5000 * gnoise(p); p = m * p;
-	v += 0.2500 * gnoise(p); p = m * p;
-	v += 0.1250 * gnoise(p); p = m * p;
-	v += 0.0625 * gnoise(p);
+	v += 0.2500 * gnoise(p);
 	return v;
 }
 
@@ -118,9 +116,11 @@ void fragment() {
 
 	// ── Pulse displacement (same as other chapters) ───────────────────────
 	vec2 pulse_uv = vec2(pulse_pos_x, pulse_pos_y);
-	float dist_to_pulse = distance(px_uv, pulse_uv);
+	vec2 pulse_delta = px_uv - pulse_uv;
+	float dist_to_pulse = length(pulse_delta);
 	float pulse_factor = smoothstep(0.3, 0.0, dist_to_pulse) * pulse_strength;
-	uv_raw += normalize(px_uv - pulse_uv) * pulse_factor * 0.8;
+	vec2 pulse_dir = pulse_delta / max(dist_to_pulse, 0.0001);
+	uv_raw += pulse_dir * pulse_factor * 0.8;
 
 	// Center the UV so blob positions sit at screen-center
 	vec2 uv = uv_raw - vec2(aspect, 1.0) * (noise_scale * 0.5);

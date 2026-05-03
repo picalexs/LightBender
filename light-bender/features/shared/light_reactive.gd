@@ -6,7 +6,7 @@ signal light_state_changed(is_in_light: bool)
 const DEFAULT_LIGHT_RECEIVER_LAYER: int = 2
 
 @export_group("Detection")
-@export var auto_refresh: bool = true
+@export var auto_refresh: bool = false
 @export var sync_parent_properties: bool = true
 
 @export_group("Visual Feedback")
@@ -113,8 +113,11 @@ func get_receiver_owner() -> Node2D:
 func _update_light_state() -> void:
 	_prune_light_sources()
 	active_light_zones = _anonymous_light_zone_count + _active_light_sources.size()
-	_sync_parent_light_properties()
-	is_in_light = active_light_zones > 0
+	var next_is_in_light := active_light_zones > 0
+	if is_in_light == next_is_in_light:
+		_sync_parent_light_properties()
+		return
+	is_in_light = next_is_in_light
 
 
 func _sync_parent_light_properties() -> void:
