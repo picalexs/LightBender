@@ -39,6 +39,7 @@ shape = SubResource("RectangleShape2D_emybh")
 [node name="SfxEmitter" type="Node2D" parent="." unique_id=301847562]
 script = ExtResource("3_sfxem")
 clips = [SubResource("SfxClip_switch")]
+bus_name = "SFX"
 
 [node name="NodeSfxController" type="Node" parent="." unique_id=301847563]
 script = ExtResource("6_sfxctrl")

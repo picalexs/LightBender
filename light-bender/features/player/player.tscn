@@ -101,6 +101,7 @@ ghost_alpha = 0.3
 [node name="SfxEmitter" type="Node2D" parent="." unique_id=556102516]
 script = ExtResource("6_sfx_emitter")
 clips = [SubResource("SfxClip_jump"), SubResource("SfxClip_dash"), SubResource("SfxClip_double_jump"), SubResource("SfxClip_wall_jump"), SubResource("SfxClip_wall_slide_loop"), SubResource("SfxClip_death")]
+bus_name = "SFX"
 max_polyphony = 8
 
 [node name="PlayerSfxController" type="Node" parent="." unique_id=1928668172]

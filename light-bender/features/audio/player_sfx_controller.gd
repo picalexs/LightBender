@@ -30,9 +30,7 @@ func _exit_tree() -> void:
 
 
 func _connect_respawn_signals() -> void:
-	if respawn_path.is_empty():
-		return
-	var respawn := get_node_or_null(respawn_path)
+	var respawn := _resolve_respawn_node()
 	if respawn == null:
 		return
 	if respawn.has_signal("respawn_requested"):
@@ -116,3 +114,24 @@ func _stop_event(event_name: String) -> void:
 		return
 	if _emitter.has_method("stop_event"):
 		_emitter.stop_event(event_name)
+
+
+func _resolve_respawn_node() -> Node:
+	if not respawn_path.is_empty():
+		return get_node_or_null(respawn_path)
+
+	var candidates: Array[NodePath] = [
+		NodePath("../../RespawnController"),
+		NodePath("../RespawnController"),
+		NodePath("/root/BaseLevel/RespawnController"),
+	]
+	for candidate_path in candidates:
+		var candidate := get_node_or_null(candidate_path)
+		if candidate != null:
+			return candidate
+
+	var current_scene := get_tree().current_scene
+	if current_scene != null:
+		return current_scene.find_child("RespawnController", true, false)
+
+	return null

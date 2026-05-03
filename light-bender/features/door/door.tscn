@@ -64,6 +64,7 @@ texture = ExtResource("3_oe0de")
 [node name="SFX_emitter" type="Node2D" parent="." unique_id=2067834201]
 script = ExtResource("4_h1vtk")
 clips = [SubResource("Resource_g1432"), SubResource("SfxClip_next_level")]
+bus_name = "SFX"
 
 [node name="Node_SFX_Controller" type="Node2D" parent="." unique_id=495456138]
 script = ExtResource("7_putx2")

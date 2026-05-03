@@ -2,7 +2,7 @@ extends Node2D
 
 @export_group("Library")
 @export var clips: Array = []
-@export var bus_name: String = "Master"
+@export var bus_name: String = "SFX"
 
 @export_group("Playback")
 @export var max_polyphony: int = 6
@@ -129,6 +129,9 @@ func _exit_tree() -> void:
 
 func _sanitize_configuration() -> void:
 	max_polyphony = max(1, max_polyphony)
+	if AudioServer.get_bus_index(bus_name) < 0:
+		push_warning("SfxEmitter2D: audio bus '%s' was not found, falling back to Master" % bus_name)
+		bus_name = "Master"
 
 
 func _rebuild_clip_lookup() -> void:

@@ -24,6 +24,7 @@ var _pitch_tween: Tween = null
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_player = AudioStreamPlayer.new()
+	_player.bus = "Music"
 	_player.volume_db = NORMAL_VOLUME_DB
 	add_child(_player)
 	_player.finished.connect(_on_track_finished)
