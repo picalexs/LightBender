@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://dx7oi3urwkg7h"]
+[gd_scene format=4 uid="uid://c42812akdit1w"]
 
 [ext_resource type="PackedScene" uid="uid://7uiwgh5xrt3d" path="res://levels/base_level/base_level.tscn" id="1_fqrm3"]
 [ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_bmkud"]
@@ -10,31 +10,31 @@ length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("DarkManager/LightZone2:position")
+tracks/0/path = NodePath("DarkManager/Node2D:rotation")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(-56, 67)]
+"values": [0.15009831]
 }
 
 [sub_resource type="Animation" id="Animation_7c034"]
 resource_name = "light_movement"
-length = 0.73333335
+length = 1.5333333
 loop_mode = 2
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("DarkManager/LightZone2:position")
+tracks/0/path = NodePath("DarkManager/Node2D:rotation")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.73333335),
+"times": PackedFloat32Array(0, 0.56666666),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(-56, 67), Vector2(148.68, 67)]
+"values": [0.15009831, -0.07853982]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_0dv7n"]
@@ -48,17 +48,24 @@ _data = {
 [node name="Player" parent="." index="0" unique_id=640300134]
 position = Vector2(-147, -15)
 
-[node name="LightZone" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="1" unique_id=1922344028 instance=ExtResource("2_bmkud")]
+[node name="DarkManager" parent="." index="1" unique_id=1218959965]
+process_mode = 3
+
+[node name="LightZone" parent="DarkManager" index="1" unique_id=1922344028 instance=ExtResource("2_bmkud")]
 position = Vector2(-123, 69)
 polygon = PackedVector2Array(-32, -568, -176, 424, 72, 400.00003, -8, -584)
 is_on = true
 
-[node name="LightZone2" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="2" unique_id=16451658 instance=ExtResource("2_bmkud")]
-position = Vector2(-56, 67)
-polygon = PackedVector2Array(-8, -888.00006, -64, 496, 63.99994, 488, 40, -688.00006)
+[node name="Node2D" type="Node2D" parent="DarkManager" index="2" unique_id=1861485871]
+position = Vector2(78, -861)
+rotation = 0.15009831
+
+[node name="LightZone2" parent="DarkManager/Node2D" index="0" unique_id=16451658 instance=ExtResource("2_bmkud")]
+position = Vector2(-5.855133, 924.26776)
+polygon = PackedVector2Array(8, -914, -58, 497, 62, 514)
 is_on = false
 
-[node name="LightZone3" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="3" unique_id=1767244341 instance=ExtResource("2_bmkud")]
+[node name="LightZone3" parent="DarkManager" index="3" unique_id=1767244341 instance=ExtResource("2_bmkud")]
 position = Vector2(294, 103)
 polygon = PackedVector2Array(-32, -568, -176, 424, 72, 400.00003, -8, -584)
 is_on = true
@@ -72,16 +79,18 @@ offset = Vector2(55, -50)
 [node name="Door" parent="." index="5" unique_id=774776963 instance=ExtResource("3_kym5e")]
 position = Vector2(264, -14)
 door_color = Color(3.272891e-06, 0.5647463, 1.92523e-07, 1)
+is_exit_door = true
+next_level_path = "uid://brtogy27ahqei"
 
 [node name="Switch" parent="." index="6" unique_id=1171742787 node_paths=PackedStringArray("target_node") instance=ExtResource("4_g4nhr")]
 position = Vector2(-179, -6)
-target_node = NodePath("../DarkManager/LightZone2")
+target_node = NodePath("../DarkManager/Node2D/LightZone2")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="7" unique_id=898218623]
 libraries/ = SubResource("AnimationLibrary_0dv7n")
 
 [node name="Switch2" parent="." index="8" unique_id=94708712 node_paths=PackedStringArray("target_node") instance=ExtResource("4_g4nhr")]
-position = Vector2(-51, -6)
+position = Vector2(-30, -5)
 target_node = NodePath("../AnimationPlayer")
 method_when_on = "play"
 parameter_when_on = "light_movement"

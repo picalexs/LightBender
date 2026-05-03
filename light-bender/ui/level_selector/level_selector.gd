@@ -13,7 +13,8 @@ const UI_TRASH_SOUND := preload("res://assets/audio/ui_trash.wav")
 @export_group("Graph Layout")
 @export var node_size: Vector2 = Vector2(64.0, 64.0)
 @export var spacing_x: float = 220.0
-@export var start_x: float = 300.0
+@export var start_x: float = 360.0
+@export var right_margin: float = 120.0
 @export var row_spacing_y: float = 110.0
 @export var chapter_y: PackedFloat32Array = PackedFloat32Array([260.0, 530.0, 800.0])
 
@@ -102,6 +103,8 @@ func _setup_audio() -> void:
 func _build_graph() -> void:
 	_nodes.clear()
 	_positions.clear()
+	var levels := _get_levels()
+	var chapter_layouts := _build_chapter_layouts(levels)
 
 	if _level_nodes_root == null:
 		_level_nodes_root = self
@@ -109,16 +112,20 @@ func _build_graph() -> void:
 		for child in _level_nodes_root.get_children():
 			child.queue_free()
 
-	for level in _get_levels():
+	for level in levels:
 		var id: String = level["id"]
 		var col: int = level["col"]
 		var row: int = level["row"]
 		var chapter: int = level["chapter"]
 		var chapter_index: int = chapter - 1
+		var chapter_layout: Dictionary = chapter_layouts.get(chapter, {})
+		var chapter_start_x: float = float(chapter_layout.get("start_x", start_x))
+		var chapter_spacing_x: float = float(chapter_layout.get("spacing_x", spacing_x))
+		var chapter_min_col: int = int(chapter_layout.get("min_col", 0))
 
 		var cy: float = chapter_y[chapter_index] if chapter_index < chapter_y.size() else 300.0 + chapter_index * 270.0
 		var center := Vector2(
-			start_x + col * spacing_x,
+			chapter_start_x + float(col - chapter_min_col) * chapter_spacing_x,
 			cy + row * row_spacing_y
 		)
 		_positions[id] = center
@@ -135,6 +142,44 @@ func _build_graph() -> void:
 		_nodes[id] = node
 
 	_sync_graph_lines()
+
+
+func _build_chapter_layouts(levels: Array) -> Dictionary:
+	var layouts: Dictionary = {}
+	var cols_by_chapter: Dictionary = {}
+
+	for level in levels:
+		var chapter: int = int(level.get("chapter", 1))
+		if not cols_by_chapter.has(chapter):
+			cols_by_chapter[chapter] = []
+		(cols_by_chapter[chapter] as Array).append(int(level.get("col", 0)))
+
+	var viewport_width: float = get_viewport_rect().size.x
+	var usable_width: float = maxf(viewport_width - start_x - right_margin, 0.0)
+
+	for chapter in cols_by_chapter:
+		var chapter_cols: Array = (cols_by_chapter[chapter] as Array).duplicate()
+		chapter_cols.sort()
+		var min_col: int = int(chapter_cols.front())
+		var max_col: int = int(chapter_cols.back())
+		var step_count: int = maxi(max_col - min_col, 0)
+		var fitted_spacing_x: float = spacing_x
+
+		if step_count > 0 and usable_width > 0.0:
+			fitted_spacing_x = minf(spacing_x, usable_width / float(step_count))
+
+		var chapter_width: float = float(step_count) * fitted_spacing_x
+		var fitted_start_x: float = start_x
+		if usable_width > chapter_width:
+			fitted_start_x += (usable_width - chapter_width) * 0.5
+
+		layouts[chapter] = {
+			"min_col": min_col,
+			"start_x": fitted_start_x,
+			"spacing_x": fitted_spacing_x,
+		}
+
+	return layouts
 
 
 func _sync_graph_lines() -> void:
@@ -233,19 +278,19 @@ func _set_reset_button_text(text: String) -> void:
 		_reset_button_label.text = text
 
 
-func _play_ui_click() -> void:
-	_play_ui_sound(UI_CLICK_SOUND)
+func _play_ui_click(persistent: bool = false) -> void:
+	_play_ui_sound(UI_CLICK_SOUND, persistent)
 
 
 func _play_ui_highlight() -> void:
-	_play_ui_sound(UI_HIGHLIGHT_SOUND, true)
+	_play_ui_sound(UI_HIGHLIGHT_SOUND, false, true)
 
 
-func _play_ui_sound(stream: AudioStream, allow_overlap: bool = false) -> void:
+func _play_ui_sound(stream: AudioStream, persistent: bool = false, allow_overlap: bool = false) -> void:
 	if stream == null:
 		return
 
-	if allow_overlap:
+	if persistent or allow_overlap:
 		var player := AudioStreamPlayer.new()
 		player.bus = "SFX"
 		player.stream = stream
@@ -405,6 +450,7 @@ func _make_reset_button_style(texture: Texture2D, modulate: Color) -> StyleBoxTe
 
 func _on_clicked(level_id: String) -> void:
 	if _is_level_unlocked(level_id) or _is_level_completed(level_id):
+		_play_ui_click(true)
 		_play_level_start_sound()
 		_launch(level_id)
 

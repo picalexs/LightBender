@@ -173,6 +173,18 @@ func get_held_item_alpha() -> float:
 	return 1.0 if _charge_ratio <= 0.0 else 0.55
 
 
+func get_interaction_prompt_title() -> String:
+	return "BATTERY"
+
+
+func get_interaction_prompt_verb() -> String:
+	return "absorb"
+
+
+func can_show_interact_prompt() -> bool:
+	return _holder == null
+
+
 func _update_flicker(delta: float) -> void:
 	if _charge_ratio > low_power_ratio:
 		_flicker_time = 0.0

@@ -1,5 +1,7 @@
 extends RigidBody2D
 
+signal toggled(is_active: bool)
+
 const HELD_COLLISION_LAYER: int = 2
 const ITEM_COLLISION_LAYER: int = 4
 const BUTTON_BOX_OFF_TEXTURE: Texture2D = preload("res://assets/sprites/Button_Box_OFF.png")
@@ -11,6 +13,11 @@ const BUTTON_BOX_ON_TEXTURE: Texture2D = preload("res://assets/sprites/Button_Bo
 @export var param_when_active: String = ""
 @export var method_when_inactive: String = "toggle_light"
 @export var param_when_inactive: String = ""
+@export var secondary_target_node: Node
+@export var secondary_method_when_active: String = ""
+@export var secondary_param_when_active: String = ""
+@export var secondary_method_when_inactive: String = ""
+@export var secondary_param_when_inactive: String = ""
 
 @export_group("Behaviour")
 @export var trigger_on_change: bool = true
@@ -51,6 +58,7 @@ func _physics_process(_delta: float) -> void:
 	if trigger_on_change:
 		if is_in_light != _was_active:
 			_fire_target(is_in_light)
+			toggled.emit(is_in_light)
 	else:
 		_fire_target(is_in_light)
 
@@ -114,16 +122,31 @@ func get_held_item_alpha() -> float:
 	return 0.55
 
 
-func _fire_target(is_active: bool) -> void:
-	if target_node == null:
-		return
+func get_interaction_prompt_verb() -> String:
+	return "absorb"
 
-	var method_name: String = method_when_active if is_active else method_when_inactive
-	var parameter: String = param_when_active if is_active else param_when_inactive
-	if method_name == "":
-		method_name = method_when_active
-		parameter = param_when_active
-	NodeDispatch.call_method(target_node, method_name, parameter, "ButtonBox")
+
+func can_show_interact_prompt() -> bool:
+	return _holder == null
+
+
+func _fire_target(is_active: bool) -> void:
+	_fire_single_target(
+		target_node,
+		method_when_active,
+		param_when_active,
+		method_when_inactive,
+		param_when_inactive,
+		is_active
+	)
+	_fire_single_target(
+		secondary_target_node,
+		secondary_method_when_active,
+		secondary_param_when_active,
+		secondary_method_when_inactive,
+		secondary_param_when_inactive,
+		is_active
+	)
 
 
 func _update_indicator() -> void:
@@ -157,3 +180,42 @@ func refresh_light_state() -> void:
 func _on_light_receiver_state_changed(now_in_light: bool) -> void:
 	active_light_zones = _light_receiver.active_light_zones if _light_receiver != null else active_light_zones
 	is_in_light = now_in_light
+
+
+func _fire_single_target(
+	target: Node,
+	active_method: String,
+	active_param: String,
+	inactive_method: String,
+	inactive_param: String,
+	is_active: bool
+) -> void:
+	if target == null:
+		return
+
+	var method_name: String = active_method if is_active else inactive_method
+	var parameter: String = active_param if is_active else inactive_param
+	if method_name == "":
+		method_name = active_method
+		parameter = active_param
+	if _try_call_stateful_light_target(target, method_name, active_method, inactive_method, is_active):
+		return
+	NodeDispatch.call_method(target, method_name, parameter, "ButtonBox")
+
+
+func _try_call_stateful_light_target(
+	target: Node,
+	method_name: String,
+	active_method: String,
+	inactive_method: String,
+	is_active: bool
+) -> bool:
+	if method_name != "toggle_light":
+		return false
+	if active_method != inactive_method:
+		return false
+	if target == null or not target.has_method("set_light_enabled"):
+		return false
+
+	target.call("set_light_enabled", is_active)
+	return true

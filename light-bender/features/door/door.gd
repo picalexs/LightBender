@@ -84,6 +84,19 @@ func _start_level_transition() -> void:
 func _on_transition_fully_covered() -> void:
 	get_tree().change_scene_to_file(next_level_path)
 
+
+func get_interaction_prompt_title() -> String:
+	return "EXIT DOOR"
+
+
+func get_interaction_prompt_verb() -> String:
+	return "enter"
+
+
+func can_show_interact_prompt() -> bool:
+	return is_exit_door and not _transitioning
+
+
 func _set_as_checkpoint() -> void:
 	if respawn_manager == null:
 		push_warning("Door Error: No RespawnManager assigned to this door!")

@@ -261,13 +261,20 @@ func _apply_hover_highlight(control: Control) -> void:
 	)
 
 
+func _get_level_manager() -> Node:
+	return get_node_or_null("/root/LevelManager")
+
+
 func _sync_slider_values() -> void:
+	var level_manager := _get_level_manager()
+	var music_volume := float(level_manager.get("music_volume")) if level_manager != null else 0.8
+	var sfx_volume := float(level_manager.get("sfx_volume")) if level_manager != null else 0.8
 	if _music_slider != null:
-		_music_slider.set_slider_value(LevelManager.music_volume)
-		_music_value_label.text = _format_slider_percent(LevelManager.music_volume)
+		_music_slider.set_slider_value(music_volume)
+		_music_value_label.text = _format_slider_percent(music_volume)
 	if _sfx_slider != null:
-		_sfx_slider.set_slider_value(LevelManager.sfx_volume)
-		_sfx_value_label.text = _format_slider_percent(LevelManager.sfx_volume)
+		_sfx_slider.set_slider_value(sfx_volume)
+		_sfx_value_label.text = _format_slider_percent(sfx_volume)
 
 
 func _format_slider_percent(value: float) -> String:
@@ -276,12 +283,16 @@ func _format_slider_percent(value: float) -> String:
 
 func _on_music_slider_changed(value: float) -> void:
 	_music_value_label.text = _format_slider_percent(value)
-	LevelManager.set_music_volume(value)
+	var level_manager := _get_level_manager()
+	if level_manager != null:
+		level_manager.call("set_music_volume", value)
 
 
 func _on_sfx_slider_changed(value: float) -> void:
 	_sfx_value_label.text = _format_slider_percent(value)
-	LevelManager.set_sfx_volume(value)
+	var level_manager := _get_level_manager()
+	if level_manager != null:
+		level_manager.call("set_sfx_volume", value)
 
 
 func _on_slider_interaction_started() -> void:

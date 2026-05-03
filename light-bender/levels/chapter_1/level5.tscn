@@ -73,7 +73,7 @@ offset = Vector2(50, -50)
 position = Vector2(264, -13)
 door_color = Color(3.272891e-06, 0.5647463, 1.92523e-07, 1)
 is_exit_door = true
-next_level_path = "uid://dx7oi3urwkg7h"
+next_level_path = "uid://c42812akdit1w"
 
 [node name="Switch" parent="." index="6" unique_id=1171742787 node_paths=PackedStringArray("target_node") instance=ExtResource("4_6xihl")]
 position = Vector2(-180, -9)

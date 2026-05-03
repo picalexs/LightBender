@@ -138,6 +138,14 @@ func get_held_item_alpha() -> float:
 	return 0.55
 
 
+func get_interaction_prompt_verb() -> String:
+	return "absorb"
+
+
+func can_show_interact_prompt() -> bool:
+	return _holder == null
+
+
 func _get_rotation_index_from_scene() -> int:
 	var snapped_steps := int(round(rotation_degrees / ROTATION_STEP_DEGREES))
 	return ((snapped_steps % ROTATION_STEP_COUNT) + ROTATION_STEP_COUNT) % ROTATION_STEP_COUNT
@@ -170,7 +178,8 @@ func refresh_light_state() -> void:
 
 
 func _on_light_receiver_state_changed(now_in_light: bool) -> void:
-	active_light_zones = _light_receiver.active_light_zones if _light_receiver != null else active_light_zones
+	if _light_receiver != null:
+		active_light_zones = _light_receiver.active_light_zones
 	is_in_light = now_in_light
 	_set_child_light_zones(is_in_light)
 	_update_visual_state()
@@ -188,7 +197,9 @@ func _collect_light_zones(node: Node, dark_manager: Node) -> void:
 			var light_zone := child as Node2D
 			if light_zone == null:
 				continue
-			var relative_transform := global_transform.affine_inverse() * light_zone.global_transform
+			var relative_transform := (
+				global_transform.affine_inverse() * light_zone.global_transform
+			)
 			if dark_manager != null and light_zone.get_parent() != dark_manager:
 				light_zone.reparent(dark_manager, true)
 			_controlled_light_zones.append({

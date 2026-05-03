@@ -32,4 +32,4 @@ offset = Vector2(0, -50)
 position = Vector2(110, -14)
 door_color = Color(3.272891e-06, 0.5647463, 1.92523e-07, 1)
 is_exit_door = true
-next_level_path = "uid://dig518i83c0lq"
+next_level_path = "uid://rrh8whpjkmmc"

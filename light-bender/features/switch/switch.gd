@@ -55,3 +55,15 @@ func _unhandled_input(event: InputEvent) -> void:
 func _update_visual_state() -> void:
 	if _visual_sprite != null:
 		_visual_sprite.texture = SWITCH_ON_TEXTURE if _is_active else SWITCH_OFF_TEXTURE
+
+
+func get_interaction_prompt_title() -> String:
+	return "SWITCH"
+
+
+func get_interaction_prompt_verb() -> String:
+	return "toggle"
+
+
+func can_show_interact_prompt() -> bool:
+	return true

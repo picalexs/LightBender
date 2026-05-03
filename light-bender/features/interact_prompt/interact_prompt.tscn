@@ -15,16 +15,22 @@ offset_right = 0.5
 offset_bottom = -3.9100342
 grow_horizontal = 2
 grow_vertical = 0
-scale = Vector2(0.82, 0.82)
 script = ExtResource("1_ak3qk")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=264416199]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Label" type="Label" parent="MarginContainer" unique_id=675834022]
 z_index = 10
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_fonts/font = ExtResource("2_dx3vq")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 11
 horizontal_alignment = 1
 vertical_alignment = 1

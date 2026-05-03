@@ -4,9 +4,14 @@
 [ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_light_zone"]
 [ext_resource type="Texture2D" uid="uid://d3cv8jao4rd3c" path="res://assets/sprites/Battery_ON.png" id="3_battery_on"]
 [ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="4_light_receiver"]
+[ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="5_rb06v"]
+[ext_resource type="Script" path="res://features/interact_prompt/pickup_prompt_area.gd" id="6_prompt_area"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_battery"]
 radius = 8.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_prompt"]
+radius = 48.0
 
 [node name="BatteryLight" type="RigidBody2D" unique_id=303039726]
 z_index = 5
@@ -38,3 +43,19 @@ core_alpha = 0.72
 penumbra_size = 100.0
 penumbra_steps = 8
 safe_zone_extra = 0.0
+
+[node name="PromptArea" type="Area2D" parent="." unique_id=1750011001]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("6_prompt_area")
+
+[node name="InteractPrompt" parent="." unique_id=322261283 instance=ExtResource("5_rb06v")]
+offset_left = 6.0
+offset_top = -27.0
+offset_right = 7.0
+offset_bottom = -4.0
+action_name = "lb_pickup"
+bind_area_path = NodePath("../PromptArea")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PromptArea" unique_id=1750011002]
+shape = SubResource("CircleShape2D_prompt")

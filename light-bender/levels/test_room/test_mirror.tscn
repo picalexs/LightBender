@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://d4din6ict5kha"]
 
-[ext_resource type="PackedScene" uid="uid://c42812akdit1w" path="res://levels/chapter_1/level7.tscn" id="1_8pepp"]
+[ext_resource type="PackedScene" uid="uid://c42812akdit1w" path="res://levels/chapter_1/level6.tscn" id="1_8pepp"]
 [ext_resource type="PackedScene" uid="uid://bhg47o5do46cv" path="res://features/battery_light/battery_light.tscn" id="3_dcx7e"]
 [ext_resource type="PackedScene" uid="uid://daue6ofpudplf" path="res://features/flashlight_box/flashlight_box.tscn" id="4_dcx7e"]
 [ext_resource type="PackedScene" uid="uid://dg6fcjlwmxjxe" path="res://features/button_box/button_box.tscn" id="5_wlpyg"]
@@ -13,11 +13,11 @@ position = Vector2(-105, 90)
 polygon = PackedVector2Array(-32, -568, -511, -7, 72, 400.00003, -8, -584)
 penumbra_steps = 8
 
-[node name="LightZone3" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="2" unique_id=1767244341]
+[node name="LightZone2" parent="DarkManager/Node2D" parent_id_path=PackedInt32Array(1861485871) index="0" unique_id=16451658]
+polygon = PackedVector2Array(-90.02193, 476.0319, 339.97742, 485.60614, 205.36255, -760.64886)
 penumbra_steps = 8
 
-[node name="LightZone2" parent="DarkManager/Node2D" parent_id_path=PackedInt32Array(630854657) index="0" unique_id=16451658]
-polygon = PackedVector2Array(-90.02193, 476.0319, 339.97742, 485.60614, 205.36255, -760.64886)
+[node name="LightZone3" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="3" unique_id=1767244341]
 penumbra_steps = 8
 
 [node name="TileMapLayer" parent="." index="2" unique_id=11531655]

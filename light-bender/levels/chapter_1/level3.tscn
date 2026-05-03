@@ -1,26 +1,26 @@
-[gd_scene format=4 uid="uid://dig518i83c0lq"]
+[gd_scene format=4 uid="uid://rrh8whpjkmmc"]
 
-[ext_resource type="PackedScene" uid="uid://7uiwgh5xrt3d" path="res://levels/base_level/base_level.tscn" id="1_mribe"]
-[ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_q6kl1"]
-[ext_resource type="PackedScene" uid="uid://do0djdwqgue4v" path="res://features/switch/switch.tscn" id="3_psejo"]
-[ext_resource type="PackedScene" uid="uid://c31ekjs10pnfb" path="res://features/door/door.tscn" id="4_a2ik5"]
+[ext_resource type="PackedScene" uid="uid://7uiwgh5xrt3d" path="res://levels/base_level/base_level.tscn" id="1_285vb"]
+[ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_4ketl"]
+[ext_resource type="PackedScene" uid="uid://c31ekjs10pnfb" path="res://features/door/door.tscn" id="3_fai6m"]
+[ext_resource type="PackedScene" uid="uid://do0djdwqgue4v" path="res://features/switch/switch.tscn" id="4_a0isg"]
 
-[node name="BaseLevel" unique_id=506907771 instance=ExtResource("1_mribe")]
+[node name="BaseLevel" unique_id=506907771 instance=ExtResource("1_285vb")]
 
 [node name="Player" parent="." index="0" unique_id=640300134]
 position = Vector2(-159, -3)
 
-[node name="LightZone" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="1" unique_id=1922344028 instance=ExtResource("2_q6kl1")]
+[node name="LightZone" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="1" unique_id=1922344028 instance=ExtResource("2_4ketl")]
 position = Vector2(-144, 64)
 polygon = PackedVector2Array(-22, -313, -112, 191.99997, 48, 191.99997, 13, -317)
 is_on = true
 
-[node name="LightZone2" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="2" unique_id=1484264329 instance=ExtResource("2_q6kl1")]
+[node name="LightZone2" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="2" unique_id=1484264329 instance=ExtResource("2_4ketl")]
 position = Vector2(5, 64)
 polygon = PackedVector2Array(-25, -322, -131, 169, 95, 155, 3, -317)
 is_on = false
 
-[node name="LightZone3" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="3" unique_id=874141891 instance=ExtResource("2_q6kl1")]
+[node name="LightZone3" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="3" unique_id=874141891 instance=ExtResource("2_4ketl")]
 position = Vector2(143, 70)
 polygon = PackedVector2Array(-2, -340, -96, 191.99997, 72, 191.99997, 15, -335)
 is_on = true
@@ -31,12 +31,12 @@ tile_map_data = PackedByteArray("AADu/wMABAABAAAAAADu/wQABAABAAEAAADu/wUABAABAAE
 [node name="Camera2D" parent="." index="4" unique_id=1800407760]
 offset = Vector2(0, -50)
 
-[node name="Door" parent="." index="5" unique_id=774776963 instance=ExtResource("4_a2ik5")]
+[node name="Door" parent="." index="5" unique_id=774776963 instance=ExtResource("3_fai6m")]
 position = Vector2(152, 2)
 door_color = Color(3.272891e-06, 0.5647463, 1.92523e-07, 1)
 is_exit_door = true
 next_level_path = "uid://ubsp81grftvp"
 
-[node name="Switch" parent="." index="6" unique_id=1171742787 node_paths=PackedStringArray("target_node") instance=ExtResource("3_psejo")]
+[node name="Switch" parent="." index="6" unique_id=1171742787 node_paths=PackedStringArray("target_node") instance=ExtResource("4_a0isg")]
 position = Vector2(-121, 6)
 target_node = NodePath("../DarkManager/LightZone2")

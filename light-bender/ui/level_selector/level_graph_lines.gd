@@ -107,7 +107,7 @@ func _draw() -> void:
 		var edge_key := _edge_key(from_id, to_id)
 		var start := _port_point(from_pos, start_side, _outgoing_ports.get(edge_key, {}))
 		var finish := _port_point(to_pos, finish_side, _incoming_ports.get(edge_key, {}))
-		var color := completed_color if LevelManager.is_completed(from_id) else pending_color
+		var color := completed_color if _is_level_completed(from_id) else pending_color
 		_draw_pixel_connection(start, finish, color)
 
 
@@ -204,3 +204,12 @@ func _port_group_key(level_id: String, side: String) -> String:
 
 func _edge_key(from_id: String, to_id: String) -> String:
 	return "%s->%s" % [from_id, to_id]
+
+
+func _get_level_manager() -> Node:
+	return get_node_or_null("/root/LevelManager")
+
+
+func _is_level_completed(level_id: String) -> bool:
+	var level_manager := _get_level_manager()
+	return bool(level_manager.call("is_completed", level_id)) if level_manager != null else false

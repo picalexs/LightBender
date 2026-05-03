@@ -41,7 +41,7 @@ const LEVELS: Array = [
 	{
 		"id": "ch1_l7", "name": "The Lighthouse",
 		"scene": "res://levels/chapter_1/level7.tscn",
-		"chapter": 1, "col": 6, "row": 0, "prerequisites": ["ch1_l6"]
+		"chapter": 1, "col": 5, "row": 1, "prerequisites": ["ch1_l6"]
 	},
 	# ── Chapter 2: Flow — add levels here as you build them ──────────────────
 	# Example:
@@ -58,6 +58,26 @@ const LEVELS: Array = [
 	# 	"chapter": 3, "col": 0, "row": 0,
 	# 	"prerequisites": ["ch1_l7", "ch2_lX"]  # last of each chapter
 	# },
+	{
+		"id": "ch1_l8", "name": "Level 8",
+		"scene": "res://levels/chapter_1/level8.tscn",
+		"chapter": 1, "col": 4, "row": 1, "prerequisites": ["ch1_l7"]
+	},
+	{
+		"id": "ch1_l9", "name": "Level 9",
+		"scene": "res://levels/chapter_1/level9.tscn",
+		"chapter": 1, "col": 3, "row": 1, "prerequisites": ["ch1_l8"]
+	},
+	{
+		"id": "ch1_l10", "name": "Level 10",
+		"scene": "res://levels/chapter_1/level10.tscn",
+		"chapter": 1, "col": 2, "row": 1, "prerequisites": ["ch1_l9"]
+	},
+	{
+		"id": "ch1_l11", "name": "Level 11",
+		"scene": "res://levels/chapter_1/level11.tscn",
+		"chapter": 1, "col": 1, "row": 1, "prerequisites": ["ch1_l10"]
+	},
 ]
 
 const CHAPTER_NAMES: Dictionary = {

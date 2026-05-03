@@ -37,8 +37,9 @@ func _ready() -> void:
 ## Marks the level completed in LevelManager and saves progress automatically.
 func complete_level() -> void:
 	var id := _resolve_level_id()
-	if id != "":
-		LevelManager.mark_completed(id)
+	var level_manager := _get_level_manager()
+	if id != "" and level_manager != null:
+		level_manager.call("mark_completed", id)
 
 
 # ── Internal ──────────────────────────────────────────────────────────────────
@@ -54,12 +55,18 @@ func _resolve_level_id() -> String:
 	var current_scene := get_tree().current_scene
 	if current_scene != null and current_scene.scene_file_path != "" and current_scene.scene_file_path not in paths_to_try:
 		paths_to_try.append(current_scene.scene_file_path)
+	var level_manager := _get_level_manager()
+	var levels: Array = level_manager.get("LEVELS") if level_manager != null else []
 
 	for path in paths_to_try:
-		for level in LevelManager.LEVELS:
+		for level in levels:
 			if level["scene"] == path:
 				return level["id"]
 	return ""
+
+
+func _get_level_manager() -> Node:
+	return get_node_or_null("/root/LevelManager")
 
 
 func _connect_exit_doors(node: Node) -> void:

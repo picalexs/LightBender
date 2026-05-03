@@ -53,6 +53,23 @@ func play_event(event_name: String) -> bool:
 	return true
 
 
+func play_stream(stream: AudioStream, volume_db: float = 0.0, pitch_scale: float = 1.0) -> bool:
+	if stream == null:
+		return false
+
+	var player := _acquire_one_shot_player()
+	if player == null:
+		return false
+
+	player.bus = bus_name
+	player.volume_db = volume_db
+	player.pitch_scale = maxf(0.01, pitch_scale)
+	player.position = Vector2.ZERO
+	player.stream = stream
+	player.play()
+	return true
+
+
 func start_event_loop(event_name: String) -> bool:
 	if event_name == "":
 		return false

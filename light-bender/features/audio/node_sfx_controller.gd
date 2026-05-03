@@ -6,7 +6,7 @@ extends Node
 
 @export_group("Events")
 @export var enable_sfx: bool = true
-@export var bindings: Array[SfxSignalBinding] = []
+@export var bindings: Array = []
 
 var _target: Node
 var _emitter: Node
@@ -23,16 +23,24 @@ func _connect_signals() -> void:
 		return
 
 	for binding in bindings:
-		if binding == null or binding.signal_name == "" or binding.event_name == "":
+		if binding == null:
 			continue
-		if not _target.has_signal(binding.signal_name):
-			push_warning("NodeSfxController: '%s' has no signal '%s'" % [_target.name, binding.signal_name])
+		var raw_signal_name = binding.get("signal_name")
+		var raw_event_name = binding.get("event_name")
+		var signal_name := "" if raw_signal_name == null else str(raw_signal_name)
+		var event_name := "" if raw_event_name == null else str(raw_event_name)
+		if signal_name == "" or event_name == "":
+			continue
+		if not _target.has_signal(signal_name):
+			push_warning("NodeSfxController: '%s' has no signal '%s'" % [_target.name, signal_name])
 			continue
 
-		var event: String = binding.event_name
-		var is_persistent: bool = bool(binding.get("persistent"))
-		var handler := _make_play_handler(event, is_persistent, binding.arg_count)
-		_target.connect(binding.signal_name, handler)
+		var raw_persistent = binding.get("persistent")
+		var raw_arg_count = binding.get("arg_count")
+		var is_persistent: bool = bool(raw_persistent) if raw_persistent != null else false
+		var arg_count := int(raw_arg_count) if raw_arg_count != null else 0
+		var handler := _make_play_handler(event_name, is_persistent, arg_count)
+		_target.connect(signal_name, handler)
 
 
 func _make_play_handler(event: String, is_persistent: bool, arg_count: int) -> Callable:
