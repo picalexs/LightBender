@@ -98,17 +98,25 @@ func _set_light_visible(v: bool) -> void:
 		ring.visible = v
 
 func _on_body_entered(body):
-	if body.has_method("add_light_zone"):
+	if body.has_method("add_light_zone_from"):
+		body.add_light_zone_from(self)
+	elif body.has_method("add_light_zone"):
 		body.add_light_zone()
 
 func _on_body_exited(body):
-	if body.has_method("remove_light_zone"):
+	if body.has_method("remove_light_zone_from"):
+		body.remove_light_zone_from(self)
+	elif body.has_method("remove_light_zone"):
 		body.remove_light_zone()
 
 func _on_area_entered(area: Area2D):
-	if area.has_method("add_light_zone"):
+	if area.has_method("add_light_zone_from"):
+		area.add_light_zone_from(self)
+	elif area.has_method("add_light_zone"):
 		area.add_light_zone()
 
 func _on_area_exited(area: Area2D):
-	if area.has_method("remove_light_zone"):
+	if area.has_method("remove_light_zone_from"):
+		area.remove_light_zone_from(self)
+	elif area.has_method("remove_light_zone"):
 		area.remove_light_zone()

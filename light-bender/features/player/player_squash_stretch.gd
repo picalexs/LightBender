@@ -13,6 +13,7 @@ var _target_scale: Vector2 = Vector2.ONE
 var _was_on_floor: bool = false
 var _landing_timer: float = 0.0
 var _last_frame_velocity: float = 0.0
+var _carry_scale_multiplier: float = 1.0
 
 
 func _ready() -> void:
@@ -55,7 +56,10 @@ func _physics_process(delta: float) -> void:
 		else:
 			_target_scale = Vector2.ONE
 
-	_sprite.scale = _sprite.scale.lerp(_target_scale, recovery_speed * delta)
+	_sprite.scale = _sprite.scale.lerp(
+		_target_scale * _carry_scale_multiplier,
+		recovery_speed * delta
+	)
 
 	_last_frame_velocity = fall_velocity
 	_was_on_floor = on_floor
@@ -74,3 +78,7 @@ func _on_jump(jump_velocity: float) -> void:
 	var squash_strength := pow(normalized, 2.5)
 	var squash := jump_squash_amount * squash_strength
 	_target_scale = Vector2(1.0 + squash * 0.2, 1.0 - squash * 0.08)
+
+
+func set_carry_scale_multiplier(multiplier: float) -> void:
+	_carry_scale_multiplier = maxf(multiplier, 0.01)

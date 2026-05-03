@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://daue6ofpudplf"]
+
+[ext_resource type="Script" uid="uid://iwvomuka1fqr" path="res://features/flashlight_box/flashlight_box.gd" id="1_flash"]
+[ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_ca36x"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_flash"]
+size = Vector2(48, 4)
+
+[node name="FlashlightBox" type="RigidBody2D" unique_id=1362627305]
+z_index = 5
+collision_layer = 3
+lock_rotation = true
+script = ExtResource("1_flash")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=951383495]
+shape = SubResource("RectangleShape2D_flash")
+
+[node name="Body" type="Polygon2D" parent="." unique_id=1952475783]
+color = Color(0.35, 0.38, 0.45, 1)
+polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+
+[node name="FlashlightLine" type="Line2D" parent="." unique_id=1880589475]
+points = PackedVector2Array(-24, 0, 24, 0)
+width = 4.0
+default_color = Color(0.9, 0.95, 1, 1)
+
+[node name="Node2D" type="Node2D" parent="." unique_id=2136138198]
+
+[node name="LightZone" parent="." unique_id=1922344028 instance=ExtResource("2_ca36x")]
+position = Vector2(3, -46)
+polygon = PackedVector2Array(-85, -178, -29, 8, 22, 8, 69, -179)
+is_on = true
