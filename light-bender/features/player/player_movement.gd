@@ -76,20 +76,30 @@ var _was_wall_sliding: bool = false
 @onready var _trail_effect = get_node_or_null("TrailEffect")
 
 @onready var safety_scanner = $SafetyScanner
+@onready var _light_receiver: LightReceiver = get_node_or_null("LightReceiver") as LightReceiver
 var is_in_light: bool = false
 var active_light_zones: int = 0
 var _anonymous_light_zone_count: int = 0
 var _light_zone_sources: Array[Node] = []
 
 func add_light_zone():
+	if _light_receiver != null:
+		_light_receiver.add_light_zone()
+		return
 	_anonymous_light_zone_count += 1
 	_refresh_light_state()
 
 func remove_light_zone():
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone()
+		return
 	_anonymous_light_zone_count = maxi(_anonymous_light_zone_count - 1, 0)
 	_refresh_light_state()
 
 func add_light_zone_from(zone: Node):
+	if _light_receiver != null:
+		_light_receiver.add_light_zone_from(zone)
+		return
 	_prune_light_zone_sources()
 	if zone == null:
 		add_light_zone()
@@ -99,6 +109,9 @@ func add_light_zone_from(zone: Node):
 	_refresh_light_state()
 
 func remove_light_zone_from(zone: Node):
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone_from(zone)
+		return
 	if zone == null:
 		remove_light_zone()
 		return
@@ -106,6 +119,8 @@ func remove_light_zone_from(zone: Node):
 	_refresh_light_state()
 
 func is_in_light_excluding_zone(excluded_zone: Node) -> bool:
+	if _light_receiver != null:
+		return _light_receiver.is_in_light_excluding_zone(excluded_zone)
 	_prune_light_zone_sources()
 	if _anonymous_light_zone_count > 0:
 		return true
@@ -115,6 +130,13 @@ func is_in_light_excluding_zone(excluded_zone: Node) -> bool:
 	return false
 
 func _refresh_light_state() -> void:
+	if _light_receiver != null:
+		_light_receiver.refresh_light_state()
+		active_light_zones = _light_receiver.active_light_zones
+		is_in_light = _light_receiver.is_in_light
+		if not is_in_light:
+			set_collision_mask_value(1, false)
+		return
 	_prune_light_zone_sources()
 	active_light_zones = _anonymous_light_zone_count + _light_zone_sources.size()
 	is_in_light = active_light_zones > 0
@@ -137,8 +159,18 @@ func _snap_to_checkpoint():
 
 func _ready() -> void:
 	_ensure_abilities()
+	if _light_receiver != null:
+		_light_receiver.light_state_changed.connect(_on_light_receiver_state_changed)
+		_refresh_light_state()
 	_refill_air_jumps()
 	_update_dash_trail_state()
+
+
+func _on_light_receiver_state_changed(now_in_light: bool) -> void:
+	is_in_light = now_in_light
+	active_light_zones = _light_receiver.active_light_zones if _light_receiver != null else active_light_zones
+	if not is_in_light:
+		set_collision_mask_value(1, false)
 
 
 func _ensure_abilities() -> void:

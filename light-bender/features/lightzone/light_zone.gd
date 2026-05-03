@@ -20,9 +20,21 @@ var _penumbra_rings: Array[Polygon2D] = []
 var _penumbra_expands: Array[float] = []
 
 func toggle_light():
-	is_on = !is_on
+	set_light_enabled(not is_on)
+
+
+func set_light_enabled(enable: bool) -> void:
+	is_on = enable
 	_set_light_visible(is_on)
 	_sync_current_overlaps()
+
+
+func is_light_active() -> bool:
+	return is_on and hitbox != null and not hitbox.disabled
+
+
+func get_light_hitbox() -> CollisionPolygon2D:
+	return hitbox
 
 
 func set_visual_enabled(enable: bool) -> void:
@@ -182,6 +194,11 @@ func _sync_current_overlaps() -> void:
 
 
 func _apply_light_to_target(target: Node) -> void:
+	if _target_has_light_receiver(target):
+		if target is LightReceiver:
+			target.add_light_zone_from(self)
+		return
+
 	if target.has_method("add_light_zone_from"):
 		target.add_light_zone_from(self)
 	elif target.has_method("add_light_zone"):
@@ -189,10 +206,26 @@ func _apply_light_to_target(target: Node) -> void:
 
 
 func _remove_light_from_target(target: Node) -> void:
+	if _target_has_light_receiver(target):
+		if target is LightReceiver:
+			target.remove_light_zone_from(self)
+		return
+
 	if target.has_method("remove_light_zone_from"):
 		target.remove_light_zone_from(self)
 	elif target.has_method("remove_light_zone"):
 		target.remove_light_zone()
+
+
+func _target_has_light_receiver(target: Node) -> bool:
+	if target == null:
+		return false
+	if target is LightReceiver:
+		return true
+	for child in target.get_children():
+		if child is LightReceiver:
+			return true
+	return false
 
 func _on_body_entered(body):
 	if not is_on:

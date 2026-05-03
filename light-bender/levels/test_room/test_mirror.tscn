@@ -22,16 +22,17 @@ tile_map_data = PackedByteArray("AADp/wEABAABAAAAAADp/wIABAABAAEAAADp/wMABAABAAE
 ring_radius = 120.0
 
 [node name="DimmingLightZone" parent="." index="9" unique_id=290748455 instance=ExtResource("3_dqlcw")]
-visible = false
 position = Vector2(-126, -159)
 polygon = PackedVector2Array(-262, -144, -240, -9, 64, -32, -36, -422)
 loop = true
 
 [node name="BatteryLight" parent="." index="10" unique_id=248821063 instance=ExtResource("3_dcx7e")]
 position = Vector2(-65, 0)
+collision_layer = 3
 
 [node name="FlashlightBox" parent="." index="11" unique_id=361694129 instance=ExtResource("4_dcx7e")]
 position = Vector2(-282, 0)
+collision_layer = 3
 
 [node name="ButtonBox" parent="." index="12" unique_id=851761815 node_paths=PackedStringArray("target_node") instance=ExtResource("5_wlpyg")]
 position = Vector2(-314, -1)

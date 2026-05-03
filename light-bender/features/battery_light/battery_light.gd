@@ -19,6 +19,7 @@ const BATTERY_ON_TEXTURE: Texture2D = preload("res://assets/sprites/Battery_ON.p
 @onready var discharge_light: Node = get_node_or_null("DischargeLight")
 @onready var powered_indicator: Node2D = get_node_or_null("PoweredIndicator")
 @onready var visual_sprite: Sprite2D = get_node_or_null("VisualSprite")
+@onready var _light_receiver: LightReceiver = get_node_or_null("LightReceiver") as LightReceiver
 
 var active_light_zones: int = 0
 var is_in_light: bool = false
@@ -43,8 +44,6 @@ var _current_core_scale: float = 1.0
 var _current_core_alpha: float = 1.0
 var _target_core_scale: float = 1.0
 var _target_core_alpha: float = 1.0
-var _drop_light_grace_frames: int = 0
-var _drop_light_state: bool = false
 var _was_in_low_power: bool = false
 
 
@@ -59,9 +58,12 @@ func _ready() -> void:
 	_default_collision_mask = collision_mask
 	_capture_and_reparent_discharge_light()
 	_capture_discharge_style_defaults()
+	if _light_receiver != null:
+		_light_receiver.light_state_changed.connect(_on_light_receiver_state_changed)
 	_set_discharge_enabled(false)
 	_update_discharge_radius(max_light_radius)
 	_update_penumbra_visual(0.0, true)
+	refresh_light_state()
 	_update_indicator()
 	_update_visual_state()
 
@@ -72,7 +74,7 @@ func _physics_process(delta: float) -> void:
 	_sync_discharge_light_transform()
 
 	var was_recharging: bool = is_in_light
-	is_in_light = _is_recharging()
+	refresh_light_state()
 	if is_in_light:
 		_charge_ratio = 1.0
 		_flicker_time = 0.0
@@ -108,45 +110,52 @@ func _physics_process(delta: float) -> void:
 
 
 func add_light_zone() -> void:
-	active_light_zones += 1
+	if _light_receiver != null:
+		_light_receiver.add_light_zone()
+		return
+	active_light_zones = 1
+	is_in_light = true
 
 
 func remove_light_zone() -> void:
-	active_light_zones = maxi(active_light_zones - 1, 0)
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone()
+		return
+	active_light_zones = 0
+	is_in_light = false
 
 
 func add_light_zone_from(zone: Node) -> void:
-	if _owns_light_zone(zone):
+	if _light_receiver != null:
+		_light_receiver.add_light_zone_from(zone)
 		return
 	add_light_zone()
 
 
 func remove_light_zone_from(zone: Node) -> void:
-	if _owns_light_zone(zone):
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone_from(zone)
 		return
 	remove_light_zone()
 
 
 func pickup(carrier: Node) -> void:
 	_holder = carrier as Node2D
-	active_light_zones = 0
-	_drop_light_grace_frames = 0
 	linear_velocity = Vector2.ZERO
 	angular_velocity = 0.0
 	sleeping = true
 	_set_physics_state(true)
+	refresh_light_state()
 
 
 func drop() -> void:
 	_holder = null
-	active_light_zones = 0
 	sleeping = false
 	_set_physics_state(false)
 
 
-func prepare_drop_state(drop_position: Vector2) -> void:
-	_drop_light_state = _is_point_in_external_light(drop_position)
-	_drop_light_grace_frames = 2
+func prepare_drop_state(_drop_position: Vector2) -> void:
+	pass
 
 
 func get_held_item_alpha() -> float:
@@ -304,44 +313,28 @@ func _set_physics_state(is_held: bool) -> void:
 		collision_mask = _default_collision_mask
 
 
-func _is_recharging() -> bool:
-	if active_light_zones > 0 or _is_holder_in_light():
-		return true
-	if _holder == null and _drop_light_grace_frames > 0:
-		_drop_light_grace_frames -= 1
-		return _drop_light_state
-	return false
-
-
-func _is_holder_in_light() -> bool:
-	if _holder == null:
-		return false
-	if _holder.has_method("is_in_light_excluding_zone"):
-		return _holder.is_in_light_excluding_zone(discharge_light)
-	return _holder.get("is_in_light") == true
-
-
 func _owns_light_zone(zone: Node) -> bool:
 	return zone != null and zone == discharge_light
 
 
-func _is_point_in_external_light(world_position: Vector2) -> bool:
-	var dark_manager: Node = get_tree().root.find_child("DarkManager", true, false)
-	if dark_manager == null:
-		return false
-	for candidate in dark_manager.find_children("*", "Polygon2D", true, false):
-		if candidate == discharge_light:
-			continue
-		if not candidate.has_method("toggle_light"):
-			continue
-		if candidate.get("is_on") != true:
-			continue
-		var hitbox := candidate.get_node_or_null("TriggerZone/Hitbox") as CollisionPolygon2D
-		if hitbox == null:
-			continue
-		if Geometry2D.is_point_in_polygon(hitbox.to_local(world_position), hitbox.polygon):
-			return true
-	return false
+func get_owned_light_sources() -> Array[Node]:
+	var owned_sources: Array[Node] = []
+	if is_instance_valid(discharge_light):
+		owned_sources.append(discharge_light)
+	return owned_sources
+
+
+func refresh_light_state() -> void:
+	if _light_receiver == null:
+		return
+	_light_receiver.refresh_light_state()
+	active_light_zones = _light_receiver.active_light_zones
+	is_in_light = _light_receiver.is_in_light
+
+
+func _on_light_receiver_state_changed(now_in_light: bool) -> void:
+	active_light_zones = _light_receiver.active_light_zones if _light_receiver != null else active_light_zones
+	is_in_light = now_in_light
 
 
 func _capture_and_reparent_discharge_light() -> void:

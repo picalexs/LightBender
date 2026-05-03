@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://iwvomuka1fqr" path="res://features/flashlight_box/flashlight_box.gd" id="1_flash"]
 [ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_ca36x"]
 [ext_resource type="Texture2D" uid="uid://d2yq343hfhwg5" path="res://assets/sprites/Flashlight_OFF.png" id="3_flashlight_off"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="4_light_receiver"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_flash"]
 size = Vector2(16, 16)
@@ -18,6 +19,12 @@ script = ExtResource("1_flash")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=951383495]
 shape = SubResource("RectangleShape2D_flash")
+
+[node name="LightReceiver" type="Area2D" parent="." unique_id=1298840163]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_light_receiver")
+dim_when_dark = false
 
 [node name="VisualSprite" type="Sprite2D" parent="." unique_id=1952475783]
 texture = ExtResource("3_flashlight_off")

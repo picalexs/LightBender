@@ -11,14 +11,13 @@ var active_light_zones: int = 0
 var is_in_light: bool = false
 
 @onready var visual_sprite: Sprite2D = get_node_or_null("VisualSprite")
+@onready var _light_receiver: LightReceiver = get_node_or_null("LightReceiver") as LightReceiver
 
 var _rotation_index: int = 0
 var _holder: Node2D = null
 var _default_collision_layer: int = 0
 var _default_collision_mask: int = 0
 var _controlled_light_zones: Array[Dictionary] = []
-var _drop_light_grace_frames: int = 0
-var _drop_light_state: bool = false
 
 
 func _ready() -> void:
@@ -33,7 +32,10 @@ func _ready() -> void:
 	_rotation_index = _get_rotation_index_from_scene()
 	_apply_rotation()
 	_capture_and_reparent_light_zones()
+	if _light_receiver != null:
+		_light_receiver.light_state_changed.connect(_on_light_receiver_state_changed)
 	_set_child_light_zones(false)
+	refresh_light_state()
 	_update_visual_state()
 
 
@@ -45,47 +47,52 @@ func _physics_process(_delta: float) -> void:
 
 
 func add_light_zone() -> void:
-	active_light_zones += 1
-	_sync_light_state()
+	if _light_receiver != null:
+		_light_receiver.add_light_zone()
+		return
+	active_light_zones = 1
+	is_in_light = true
 
 
 func remove_light_zone() -> void:
-	active_light_zones = maxi(active_light_zones - 1, 0)
-	_sync_light_state()
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone()
+		return
+	active_light_zones = 0
+	is_in_light = false
 
 
 func add_light_zone_from(zone: Node) -> void:
-	if _owns_light_zone(zone):
+	if _light_receiver != null:
+		_light_receiver.add_light_zone_from(zone)
 		return
 	add_light_zone()
 
 
 func remove_light_zone_from(zone: Node) -> void:
-	if _owns_light_zone(zone):
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone_from(zone)
 		return
 	remove_light_zone()
 
 
 func pickup(carrier: Node) -> void:
 	_holder = carrier as Node2D
-	active_light_zones = 0
-	_drop_light_grace_frames = 0
 	linear_velocity = Vector2.ZERO
 	angular_velocity = 0.0
 	sleeping = true
 	_set_physics_state(true)
+	refresh_light_state()
 
 
 func drop() -> void:
 	_holder = null
-	active_light_zones = 0
 	sleeping = false
 	_set_physics_state(false)
 
 
-func prepare_drop_state(drop_position: Vector2) -> void:
-	_drop_light_state = _is_point_in_external_light(drop_position)
-	_drop_light_grace_frames = 2
+func prepare_drop_state(_drop_position: Vector2) -> void:
+	pass
 
 
 func rotate_mirror() -> void:
@@ -94,11 +101,11 @@ func rotate_mirror() -> void:
 
 
 func _sync_light_state() -> void:
-	var should_be_in_light := _get_current_light_state()
-	if should_be_in_light == is_in_light:
+	var was_in_light := is_in_light
+	refresh_light_state()
+	if was_in_light == is_in_light:
 		return
 
-	is_in_light = should_be_in_light
 	_set_child_light_zones(is_in_light)
 	_update_visual_state()
 
@@ -151,42 +158,34 @@ func _owns_light_zone(zone: Node) -> bool:
 	return false
 
 
+func get_owned_light_sources() -> Array[Node]:
+	var owned_sources: Array[Node] = []
+	for light_zone_data in _controlled_light_zones:
+		var light_zone: Node = light_zone_data.get("node")
+		if is_instance_valid(light_zone):
+			owned_sources.append(light_zone)
+	return owned_sources
+
+
+func refresh_light_state() -> void:
+	if _light_receiver == null:
+		return
+	_light_receiver.refresh_light_state()
+	active_light_zones = _light_receiver.active_light_zones
+	is_in_light = _light_receiver.is_in_light
+
+
+func _on_light_receiver_state_changed(now_in_light: bool) -> void:
+	active_light_zones = _light_receiver.active_light_zones if _light_receiver != null else active_light_zones
+	is_in_light = now_in_light
+	_set_child_light_zones(is_in_light)
+	_update_visual_state()
+
+
 func _capture_and_reparent_light_zones() -> void:
 	_controlled_light_zones.clear()
 	var dark_manager := get_tree().root.find_child("DarkManager", true, false)
 	_collect_light_zones(self, dark_manager)
-
-
-func _is_holder_in_light() -> bool:
-	return _holder != null and _holder.get("is_in_light") == true
-
-
-func _get_current_light_state() -> bool:
-	if active_light_zones > 0 or _is_holder_in_light():
-		return true
-	if _holder == null and _drop_light_grace_frames > 0:
-		_drop_light_grace_frames -= 1
-		return _drop_light_state
-	return false
-
-
-func _is_point_in_external_light(world_position: Vector2) -> bool:
-	var dark_manager := get_tree().root.find_child("DarkManager", true, false)
-	if dark_manager == null:
-		return false
-	for candidate in dark_manager.find_children("*", "Polygon2D", true, false):
-		if _owns_light_zone(candidate):
-			continue
-		if not candidate.has_method("toggle_light"):
-			continue
-		if candidate.get("is_on") != true:
-			continue
-		var hitbox := candidate.get_node_or_null("TriggerZone/Hitbox") as CollisionPolygon2D
-		if hitbox == null:
-			continue
-		if Geometry2D.is_point_in_polygon(hitbox.to_local(world_position), hitbox.polygon):
-			return true
-	return false
 
 
 func _collect_light_zones(node: Node, dark_manager: Node) -> void:

@@ -70,9 +70,13 @@ func _ready() -> void:
 
 	trigger_zone.body_entered.connect(_on_body_entered)
 	trigger_zone.body_exited.connect(_on_body_exited)
+	trigger_zone.area_entered.connect(_on_area_entered)
+	trigger_zone.area_exited.connect(_on_area_exited)
 
 	if not is_on:
 		_apply_instant_off()
+	else:
+		_sync_current_overlaps()
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -132,9 +136,7 @@ func _tick_flicker_flickering(delta: float) -> void:
 			_flicker_elapsed = 0.0
 			_set_light_visible(false)
 			hitbox.set_deferred("disabled", true)
-			for body in trigger_zone.get_overlapping_bodies():
-				if body.has_method("remove_light_zone"):
-					body.remove_light_zone()
+			_sync_current_overlaps(false)
 			if not loop:
 				is_on = false
 		else:
@@ -158,6 +160,7 @@ func reset_dim() -> void:
 		_set_light_visible(true)
 		if hitbox:
 			hitbox.set_deferred("disabled", false)
+		_sync_current_overlaps(true)
 		return
 
 	if not smooth_reverse_loop:
@@ -169,12 +172,25 @@ func reset_dim() -> void:
 	_set_light_visible(true)
 	if hitbox:
 		hitbox.set_deferred("disabled", false)
+	_sync_current_overlaps(true)
 
 func toggle_light() -> void:
 	if is_on:
 		_turn_off()
 	else:
 		reset_dim()
+
+func set_light_enabled(enable: bool) -> void:
+	if enable:
+		reset_dim()
+	else:
+		_turn_off()
+
+func is_light_active() -> bool:
+	return is_on and hitbox != null and not hitbox.disabled
+
+func get_light_hitbox() -> CollisionPolygon2D:
+	return hitbox
 
 func _update_polygon(t: float) -> void:
 	var new_poly := PackedVector2Array()
@@ -193,9 +209,7 @@ func _turn_off() -> void:
 	_set_light_visible(false)
 	if hitbox:
 		hitbox.set_deferred("disabled", true)
-	for body in trigger_zone.get_overlapping_bodies():
-		if body.has_method("remove_light_zone"):
-			body.remove_light_zone()
+	_sync_current_overlaps(false)
 
 func _apply_instant_off() -> void:
 	is_on = false
@@ -251,9 +265,71 @@ func _compute_centroid(pts: PackedVector2Array) -> Vector2:
 	return c / float(pts.size())
 
 func _on_body_entered(body: Node2D) -> void:
-	if body.has_method("add_light_zone"):
-		body.add_light_zone()
+	if not is_light_active():
+		return
+	_apply_light_to_target(body)
 
 func _on_body_exited(body: Node2D) -> void:
-	if body.has_method("remove_light_zone"):
-		body.remove_light_zone()
+	_remove_light_from_target(body)
+
+
+func _on_area_entered(area: Area2D) -> void:
+	if not is_light_active():
+		return
+	_apply_light_to_target(area)
+
+
+func _on_area_exited(area: Area2D) -> void:
+	_remove_light_from_target(area)
+
+
+func _sync_current_overlaps(force_active: Variant = null) -> void:
+	if trigger_zone == null:
+		return
+
+	var should_apply := is_light_active() if force_active == null else bool(force_active)
+	for body in trigger_zone.get_overlapping_bodies():
+		if should_apply:
+			_apply_light_to_target(body)
+		else:
+			_remove_light_from_target(body)
+	for area in trigger_zone.get_overlapping_areas():
+		if should_apply:
+			_apply_light_to_target(area)
+		else:
+			_remove_light_from_target(area)
+
+
+func _apply_light_to_target(target: Node) -> void:
+	if _target_has_light_receiver(target):
+		if target is LightReceiver:
+			target.add_light_zone_from(self)
+		return
+
+	if target.has_method("add_light_zone_from"):
+		target.add_light_zone_from(self)
+	elif target.has_method("add_light_zone"):
+		target.add_light_zone()
+
+
+func _remove_light_from_target(target: Node) -> void:
+	if _target_has_light_receiver(target):
+		if target is LightReceiver:
+			target.remove_light_zone_from(self)
+		return
+
+	if target.has_method("remove_light_zone_from"):
+		target.remove_light_zone_from(self)
+	elif target.has_method("remove_light_zone"):
+		target.remove_light_zone()
+
+
+func _target_has_light_receiver(target: Node) -> bool:
+	if target == null:
+		return false
+	if target is LightReceiver:
+		return true
+	for child in target.get_children():
+		if child is LightReceiver:
+			return true
+	return false

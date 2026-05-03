@@ -79,14 +79,14 @@ func _do_drop() -> void:
 		var drop_position: Variant = _find_drop_position(held_item)
 		if drop_position == null:
 			return
-		if held_item.has_method("prepare_drop_state"):
-			held_item.prepare_drop_state(drop_position)
 		_apply_held_visual(held_item, false)
 		held_item.drop()
 		held_item.global_position = drop_position
 		if held_item is RigidBody2D:
 			held_item.linear_velocity = Vector2.ZERO
 			held_item.angular_velocity = 0.0
+		if held_item.has_method("refresh_light_state"):
+			held_item.refresh_light_state()
 	held_item = null
 	_update_carrier_visual(false)
 
