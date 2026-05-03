@@ -172,8 +172,13 @@ func _finish_respawn() -> void:
 	# Let physics/light overlap state settle before we reveal the world again.
 	await get_tree().physics_frame
 
-	BackgroundManager.set_state("idle", 1.5)
+	BackgroundManager.snap_to_state("idle")
 	MusicManager.on_respawn()
+
+	# Give the background viewport one render tick to present the snapped state
+	# while the transition is still fully closed, so the reopen animation does
+	# not reveal the shader morph between death and idle.
+	await get_tree().process_frame
 
 	if _respawn_transition != null and _respawn_transition.has_method("play_ring_open_from_target"):
 		_respawn_transition.play_ring_open_from_target(ring_open_radius, ring_open_hold, ring_open_phase1_dur, ring_open_phase2_dur)

@@ -270,6 +270,16 @@ func set_state(state_name: String, speed: float = 2.0) -> void:
 	_lerp_speed = speed
 
 
+func snap_to_state(state_name: String) -> void:
+	if not _presets.has(state_name):
+		push_warning("BackgroundManager: unknown state '%s'" % state_name)
+		return
+	_current_state_name = state_name
+	_current_state = _presets[state_name].duplicate(false)
+	_target_state = _current_state.duplicate(false)
+	_apply(_current_state)
+
+
 func _process(delta: float) -> void:
 	for key: String in _target_state:
 		var from = _current_state[key]
