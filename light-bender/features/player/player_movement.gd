@@ -78,17 +78,53 @@ var _was_wall_sliding: bool = false
 @onready var safety_scanner = $SafetyScanner
 var is_in_light: bool = false
 var active_light_zones: int = 0
+var _anonymous_light_zone_count: int = 0
+var _light_zone_sources: Array[Node] = []
 
 func add_light_zone():
-	active_light_zones += 1
-	is_in_light = true
+	_anonymous_light_zone_count += 1
+	_refresh_light_state()
 
 func remove_light_zone():
-	active_light_zones -= 1
-	if active_light_zones <= 0:
-		active_light_zones = 0 # failsafe against negative counts
-		is_in_light = false
+	_anonymous_light_zone_count = maxi(_anonymous_light_zone_count - 1, 0)
+	_refresh_light_state()
+
+func add_light_zone_from(zone: Node):
+	_prune_light_zone_sources()
+	if zone == null:
+		add_light_zone()
+		return
+	if not _light_zone_sources.has(zone):
+		_light_zone_sources.append(zone)
+	_refresh_light_state()
+
+func remove_light_zone_from(zone: Node):
+	if zone == null:
+		remove_light_zone()
+		return
+	_light_zone_sources.erase(zone)
+	_refresh_light_state()
+
+func is_in_light_excluding_zone(excluded_zone: Node) -> bool:
+	_prune_light_zone_sources()
+	if _anonymous_light_zone_count > 0:
+		return true
+	for zone in _light_zone_sources:
+		if zone != excluded_zone:
+			return true
+	return false
+
+func _refresh_light_state() -> void:
+	_prune_light_zone_sources()
+	active_light_zones = _anonymous_light_zone_count + _light_zone_sources.size()
+	is_in_light = active_light_zones > 0
+	if not is_in_light:
 		set_collision_mask_value(1, false)
+
+func _prune_light_zone_sources() -> void:
+	for i in range(_light_zone_sources.size() - 1, -1, -1):
+		if not is_instance_valid(_light_zone_sources[i]):
+			_light_zone_sources.remove_at(i)
 
 func _re_enter_light():
 	if is_in_light and not get_collision_mask_value(1):

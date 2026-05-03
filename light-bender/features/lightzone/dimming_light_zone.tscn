@@ -19,7 +19,7 @@ polygon = PackedVector2Array(-64, -128, -64, -32, 64, -32, 64, -128)
 
 [node name="TriggerZone" type="Area2D" parent="."]
 collision_layer = 0
-collision_mask = 2
+collision_mask = 6
 
 [node name="Hitbox" type="CollisionPolygon2D" parent="TriggerZone"]
 polygon = PackedVector2Array(-64, -128, -64, -32, 64, -32, 64, -128)

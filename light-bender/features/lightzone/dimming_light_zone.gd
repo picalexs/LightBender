@@ -1,6 +1,8 @@
 @tool
 extends Polygon2D
 
+const LIGHT_AFFECTED_MASK: int = 6
+
 enum LightMode {DIMMING, FLICKERING}
 
 @export_group("General")
@@ -64,6 +66,7 @@ func _ready() -> void:
 	hole.polygon = polygon
 	_build_penumbra()
 	hitbox.polygon = _get_hitbox_polygon()
+	trigger_zone.collision_mask = LIGHT_AFFECTED_MASK
 
 	trigger_zone.body_entered.connect(_on_body_entered)
 	trigger_zone.body_exited.connect(_on_body_exited)

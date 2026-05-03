@@ -13,7 +13,7 @@ is_on = null
 
 [node name="TriggerZone" type="Area2D" parent="." unique_id=1824349842]
 collision_layer = 0
-collision_mask = 2
+collision_mask = 6
 
 [node name="Hitbox" type="CollisionPolygon2D" parent="TriggerZone" unique_id=886791938]
 polygon = PackedVector2Array(-72.00006, -152, -71.99997, -32, 64, -31.999992, 64, -154)

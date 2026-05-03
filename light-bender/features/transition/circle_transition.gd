@@ -58,6 +58,21 @@ func play_from_target(custom_hold_delay: float = -1.0) -> void:
 		play_from_screen_position(_get_viewport_size() * 0.5, custom_hold_delay)
 
 
+func play_close_from_target(custom_hold_delay: float = -1.0) -> void:
+	_resolve_target()
+	if _target_node != null:
+		play_close_from_world_position(_target_node.global_position, custom_hold_delay)
+		return
+
+	var player = _find_player()
+	if player != null:
+		play_close_from_world_position(player.global_position, custom_hold_delay)
+		return
+
+	if fallback_to_viewport_center:
+		play_close_from_screen_position(_get_viewport_size() * 0.5, custom_hold_delay)
+
+
 func play_ring_from_target(ring_radius: float = 80.0, ring_hold: float = 0.2, custom_hold_delay: float = -1.0, phase1_dur: float = -1.0, phase2_dur: float = -1.0) -> void:
 	_resolve_target()
 	if _target_node != null:
@@ -157,6 +172,11 @@ func play_from_world_position(world_position: Vector2, custom_hold_delay: float 
 	play_from_screen_position(screen_position, custom_hold_delay)
 
 
+func play_close_from_world_position(world_position: Vector2, custom_hold_delay: float = -1.0) -> void:
+	var screen_position = _world_to_screen(world_position)
+	play_close_from_screen_position(screen_position, custom_hold_delay)
+
+
 func play_from_screen_position(screen_position: Vector2, custom_hold_delay: float = -1.0) -> void:
 	_sanitize_settings()
 	_kill_active_tween()
@@ -180,6 +200,29 @@ func play_from_screen_position(screen_position: Vector2, custom_hold_delay: floa
 		_active_tween.tween_interval(effective_hold)
 	_active_tween.tween_method(_set_hole_radius, 0.0, max_radius, open_duration)
 	_active_tween.tween_callback(_on_transition_finished)
+
+
+func play_close_from_screen_position(screen_position: Vector2, custom_hold_delay: float = -1.0) -> void:
+	_sanitize_settings()
+	_kill_active_tween()
+
+	var clamped_center = _clamp_to_viewport(screen_position)
+	var effective_hold = hold_delay if custom_hold_delay < 0.0 else max(0.0, custom_hold_delay)
+	var max_radius = _radius_to_cover_viewport(clamped_center)
+
+	_overlay.visible = true
+	_set_hole_center(clamped_center)
+	_set_hole_radius(max_radius)
+
+	_is_running = true
+	transition_started.emit()
+
+	_active_tween = create_tween()
+	_active_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_active_tween.tween_method(_set_hole_radius, max_radius, 0.0, close_duration)
+	_active_tween.tween_callback(_on_close_only_fully_covered)
+	if effective_hold > 0.0:
+		_active_tween.tween_interval(effective_hold)
 
 
 func play_open(custom_center: Vector2 = Vector2.ZERO) -> void:
@@ -211,6 +254,13 @@ func is_running() -> bool:
 
 
 func _on_fully_covered() -> void:
+	fully_covered.emit()
+
+
+func _on_close_only_fully_covered() -> void:
+	_is_running = false
+	_active_tween = null
+	_tracked_node = null
 	fully_covered.emit()
 
 

@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://ckxtm8u8eyyu6" path="res://features/audio/node_sfx_controller.gd" id="6_sfxctrl"]
 [ext_resource type="Script" uid="uid://b0bxvxbw300t4" path="res://features/audio/sfx_signal_binding.gd" id="7_sfxbnd"]
 [ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="8_ltrct"]
+[ext_resource type="Texture2D" uid="uid://daerw46gnokss" path="res://assets/sprites/Switch_OFF.png" id="9_switch_off"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_emybh"]
 
@@ -28,11 +29,9 @@ collision_layer = 0
 collision_mask = 2
 script = ExtResource("1_8c5r1")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=670111073]
-offset_left = -4.0
-offset_top = -4.0
-offset_right = 4.0
-offset_bottom = 4.0
+[node name="VisualSprite" type="Sprite2D" parent="." unique_id=670111073]
+scale = Vector2(2, 2)
+texture = ExtResource("9_switch_off")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1176049424]
 shape = SubResource("RectangleShape2D_emybh")
@@ -55,6 +54,7 @@ offset_bottom = -4.0
 
 [node name="LightReactive" type="Area2D" parent="." unique_id=1410065407]
 script = ExtResource("8_ltrct")
+dim_when_dark = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="LightReactive" unique_id=1410065406]
 shape = SubResource("RectangleShape2D_emybh")

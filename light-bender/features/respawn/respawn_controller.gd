@@ -75,6 +75,10 @@ func request_respawn(source: StringName = SOURCE_MANUAL) -> void:
 	_pending_respawn_source = source
 	respawn_requested.emit(source)
 
+	if _respawn_transition != null and _respawn_transition.has_method("play_close_from_target"):
+		_respawn_transition.play_close_from_target(custom_hold_delay)
+		return
+
 	if _respawn_transition != null and _respawn_transition.has_method("play_from_target"):
 		_respawn_transition.play_from_target(custom_hold_delay)
 		return
@@ -164,6 +168,9 @@ func _finish_respawn() -> void:
 	_player.global_position = _spawn_position
 	if reset_velocity_on_respawn:
 		_player.velocity = Vector2.ZERO
+
+	# Let physics/light overlap state settle before we reveal the world again.
+	await get_tree().physics_frame
 
 	BackgroundManager.set_state("idle", 1.5)
 	MusicManager.on_respawn()
