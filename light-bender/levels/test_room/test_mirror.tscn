@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://d4din6ict5kha"]
 
-[ext_resource type="PackedScene" uid="uid://c42812akdit1w" path="res://levels/demo_levels/level7.tscn" id="1_8pepp"]
+[ext_resource type="PackedScene" uid="uid://c42812akdit1w" path="res://levels/chapter_1/level7.tscn" id="1_8pepp"]
 [ext_resource type="PackedScene" uid="uid://bhg47o5do46cv" path="res://features/battery_light/battery_light.tscn" id="3_dcx7e"]
 [ext_resource type="PackedScene" uid="uid://daue6ofpudplf" path="res://features/flashlight_box/flashlight_box.tscn" id="4_dcx7e"]
 [ext_resource type="PackedScene" uid="uid://dg6fcjlwmxjxe" path="res://features/button_box/button_box.tscn" id="5_wlpyg"]

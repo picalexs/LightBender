@@ -204,6 +204,10 @@ var _current_chapter: int = 0
 var _current_state_name: String = "idle"
 var _presets: Dictionary = {}
 var _applied_parameters: Dictionary = {}
+var _context_motion_tween: Tween = null
+var _menu_mode: bool = false
+var _pause_mode: bool = false
+var _context_motion_scale: float = 1.0
 
 # Pulse state
 var _pulse_strength: float = 0.0
@@ -280,6 +284,16 @@ func snap_to_state(state_name: String) -> void:
 	_apply(_current_state)
 
 
+func set_menu_mode(enabled: bool) -> void:
+	_menu_mode = enabled
+	_apply_context_motion()
+
+
+func set_pause_mode(enabled: bool) -> void:
+	_pause_mode = enabled
+	_apply_context_motion()
+
+
 func _process(delta: float) -> void:
 	for key: String in _target_state:
 		var from = _current_state[key]
@@ -304,6 +318,42 @@ func _process(delta: float) -> void:
 func _apply(p: Dictionary) -> void:
 	for key: String in p:
 		_set_shader_parameter(key, p[key], true)
+
+
+func _apply_context_motion(duration: float = -1.0) -> void:
+	if duration < 0.0:
+		duration = MusicManager.get_context_tween_duration()
+	var target := _get_context_motion_target()
+	_kill_context_motion_tween()
+	_context_motion_tween = create_tween()
+	_context_motion_tween.tween_method(_set_context_motion_scale, _context_motion_scale, target, duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _get_context_motion_target() -> float:
+	return MusicManager.get_menu_background_time_scale() if _menu_mode or _pause_mode else 1.0
+
+
+func _kill_context_motion_tween() -> void:
+	if _context_motion_tween != null and _context_motion_tween.is_valid():
+		_context_motion_tween.kill()
+	_context_motion_tween = null
+
+
+func _refresh_context_motion_parameters() -> void:
+	if _current_state.is_empty():
+		return
+	if _current_state.has("time_scale"):
+		_set_shader_parameter("time_scale", _current_state["time_scale"], true)
+	if _current_state.has("flow_speed"):
+		_set_shader_parameter("flow_speed", _current_state["flow_speed"], true)
+
+
+func _set_context_motion_scale(value: float) -> void:
+	if is_equal_approx(_context_motion_scale, value):
+		return
+	_context_motion_scale = value
+	_refresh_context_motion_parameters()
 
 
 func trigger_pulse(screen_pos: Vector2 = Vector2(-1.0, -1.0)) -> void:
@@ -351,7 +401,11 @@ func _colors_are_close(a: Color, b: Color) -> bool:
 
 
 func _set_shader_parameter(key: String, value: Variant, force: bool = false) -> void:
-	if not force and _applied_parameters.has(key) and _applied_parameters[key] == value:
+	var resolved_value: Variant = value
+	if key == "time_scale":
+		resolved_value = float(value) * _context_motion_scale
+
+	if not force and _applied_parameters.has(key) and _applied_parameters[key] == resolved_value:
 		return
-	_material.set_shader_parameter(key, value)
-	_applied_parameters[key] = value
+	_material.set_shader_parameter(key, resolved_value)
+	_applied_parameters[key] = resolved_value

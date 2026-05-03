@@ -53,7 +53,7 @@ func set_node_state(s: State) -> void:
 	current_state = s
 	if s == State.LOCKED:
 		_is_hovered = false
-	mouse_filter = MOUSE_FILTER_IGNORE if s == State.LOCKED else MOUSE_FILTER_STOP
+	mouse_filter = MOUSE_FILTER_STOP
 	match s:
 		State.LOCKED, State.UNLOCKED, State.COMPLETED:
 			_base_state = s
@@ -87,7 +87,7 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _on_mouse_entered() -> void:
-	_is_hovered = true
+	_is_hovered = _base_state != State.LOCKED
 	_apply_visuals()
 	hovered.emit(level_id)
 

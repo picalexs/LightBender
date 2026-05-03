@@ -5,7 +5,13 @@ extends CanvasLayer
 const PIXEL_FONT := preload("res://assets/pixelfont.ttf")
 const UI_FORM := preload("res://assets/sprites/UI_Form.png")
 const BIG_BUTTON := preload("res://assets/sprites/Big_Button.png")
+const BIG_BUTTON_HOVER := preload("res://assets/sprites/Big_Button_Hover.png")
 const IndicatorSliderScript := preload("res://ui/pause_menu/indicator_slider.gd")
+const UI_HIGHLIGHT := preload("res://assets/audio/ui_clicking_3.wav")
+const UI_CLICK_1 := preload("res://assets/audio/ui_click_1.wav")
+const UI_SLIDER := preload("res://assets/audio/ui_clicking_2.wav")
+const UI_SLIDER_VOLUME_DB := -7.5
+const UI_SLIDER_REPEAT_COOLDOWN_MS := 55
 
 var _open: bool = false
 var _overlay: ColorRect
@@ -13,11 +19,14 @@ var _music_slider
 var _sfx_slider
 var _music_value_label: Label
 var _sfx_value_label: Label
+var _ui_click_player: AudioStreamPlayer
+var _last_slider_sound_time_ms: int = -1000
 
 
 func _ready() -> void:
 	layer = 50
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_setup_audio()
 	_build_ui()
 
 
@@ -33,6 +42,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _show() -> void:
 	_open = true
 	_overlay.visible = true
+	MusicManager.set_pause_mode(is_in_level)
+	BackgroundManager.set_pause_mode(is_in_level)
 	if is_in_level:
 		get_tree().paused = true
 	_sync_slider_values()
@@ -41,6 +52,8 @@ func _show() -> void:
 func _close() -> void:
 	_open = false
 	_overlay.visible = false
+	MusicManager.set_pause_mode(false)
+	BackgroundManager.set_pause_mode(false)
 	if is_in_level:
 		get_tree().paused = false
 
@@ -85,7 +98,7 @@ func _build_ui() -> void:
 	btn_resume.pressed.connect(_close)
 	vbox.add_child(btn_resume)
 
-	var btn_nav := _make_button("LEVEL SELECTOR" if is_in_level else "QUIT GAME")
+	var btn_nav := _make_button("LEVEL SELECTOR" if is_in_level else "QUIT GAME", UI_CLICK_1, is_in_level)
 	btn_nav.pressed.connect(_on_navigate)
 	vbox.add_child(btn_nav)
 
@@ -113,9 +126,9 @@ func _make_panel_style() -> StyleBoxTexture:
 	return sb
 
 
-func _make_button_style(modulate: Color) -> StyleBoxTexture:
+func _make_button_style(texture: Texture2D, modulate: Color) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()
-	sb.texture = BIG_BUTTON
+	sb.texture = texture
 	sb.texture_margin_left = 12.0
 	sb.texture_margin_top = 6.0
 	sb.texture_margin_right = 12.0
@@ -134,7 +147,7 @@ func _make_rule() -> HSeparator:
 	return sep
 
 
-func _make_button(label_text: String) -> Button:
+func _make_button(label_text: String, sound_stream: AudioStream = UI_CLICK_1, persistent_sound: bool = false) -> Button:
 	var btn := Button.new()
 	btn.text = label_text
 	btn.custom_minimum_size = Vector2(0, 84)
@@ -144,14 +157,17 @@ func _make_button(label_text: String) -> Button:
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(0.84, 0.90, 1.0))
 
-	var normal_sb := _make_button_style(Color(0.82, 0.88, 1.0, 1.0))
-	var hover_sb := _make_button_style(Color(0.96, 0.98, 1.0, 1.0))
-	var pressed_sb := _make_button_style(Color(0.68, 0.76, 0.90, 1.0))
+	var normal_sb := _make_button_style(BIG_BUTTON, Color(0.82, 0.88, 1.0, 1.0))
+	var hover_sb := _make_button_style(BIG_BUTTON_HOVER, Color(1.0, 1.0, 1.0, 1.0))
+	var pressed_sb := _make_button_style(BIG_BUTTON_HOVER, Color(0.80, 0.86, 0.96, 1.0))
 
 	btn.add_theme_stylebox_override("normal", normal_sb)
 	btn.add_theme_stylebox_override("hover", hover_sb)
 	btn.add_theme_stylebox_override("pressed", pressed_sb)
 	btn.add_theme_stylebox_override("focus", hover_sb)
+	btn.resized.connect(func() -> void: btn.pivot_offset = btn.size * 0.5)
+	_apply_hover_highlight(btn)
+	btn.pressed.connect(func() -> void: _play_ui_sound(sound_stream, persistent_sound))
 	return btn
 
 
@@ -190,6 +206,9 @@ func _make_volume_row(label_text: String, is_music: bool) -> VBoxContainer:
 		_sfx_slider = slider
 		_sfx_value_label = value_label
 		slider.value_changed.connect(_on_sfx_slider_changed)
+	slider.interaction_started.connect(_on_slider_interaction_started)
+	slider.hover_started.connect(_on_slider_hover_started)
+	slider.step_crossed.connect(_on_slider_step_crossed)
 
 	return row
 
@@ -200,6 +219,46 @@ func _style_text(control: Control, font_size: int, font_color: Color, outline_si
 	control.add_theme_color_override("font_color", font_color)
 	control.add_theme_color_override("font_outline_color", Color(0.08, 0.08, 0.12, 1.0))
 	control.add_theme_constant_override("outline_size", outline_size)
+
+
+func _setup_audio() -> void:
+	_ui_click_player = AudioStreamPlayer.new()
+	_ui_click_player.bus = "SFX"
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_ui_click_player)
+
+
+func _play_ui_sound(stream: AudioStream, persistent: bool = false, allow_overlap: bool = false, volume_db: float = 0.0) -> void:
+	if stream == null:
+		return
+
+	if persistent or allow_overlap:
+		var player := AudioStreamPlayer.new()
+		player.bus = "SFX"
+		player.stream = stream
+		player.volume_db = volume_db
+		get_tree().root.add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
+		return
+
+	if _ui_click_player == null:
+		return
+	_ui_click_player.stream = stream
+	_ui_click_player.volume_db = volume_db
+	_ui_click_player.play()
+
+
+func _apply_hover_highlight(control: Control) -> void:
+	control.mouse_entered.connect(func() -> void:
+		_play_ui_sound(UI_HIGHLIGHT, false, true)
+		control.scale = Vector2(1.015, 1.015)
+		control.modulate = Color(1.04, 1.04, 1.04, 1.0)
+	)
+	control.mouse_exited.connect(func() -> void:
+		control.scale = Vector2.ONE
+		control.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	)
 
 
 func _sync_slider_values() -> void:
@@ -223,6 +282,26 @@ func _on_music_slider_changed(value: float) -> void:
 func _on_sfx_slider_changed(value: float) -> void:
 	_sfx_value_label.text = _format_slider_percent(value)
 	LevelManager.set_sfx_volume(value)
+
+
+func _on_slider_interaction_started() -> void:
+	_play_slider_sound(true)
+
+
+func _on_slider_hover_started() -> void:
+	_play_ui_sound(UI_HIGHLIGHT, false, true)
+
+
+func _on_slider_step_crossed() -> void:
+	_play_slider_sound()
+
+
+func _play_slider_sound(ignore_cooldown: bool = false) -> void:
+	var now := Time.get_ticks_msec()
+	if not ignore_cooldown and now - _last_slider_sound_time_ms < UI_SLIDER_REPEAT_COOLDOWN_MS:
+		return
+	_last_slider_sound_time_ms = now
+	_play_ui_sound(UI_SLIDER, false, true, UI_SLIDER_VOLUME_DB)
 
 
 func _on_navigate() -> void:

@@ -2,6 +2,9 @@ extends Control
 class_name IndicatorSlider
 
 signal value_changed(value: float)
+signal interaction_started
+signal hover_started
+signal step_crossed
 
 const INDICATOR_BASE := preload("res://assets/sprites/Level_Icon_Unlocked.png")
 const IDLE_OVERLAY := preload("res://assets/sprites/Not_Selected.png")
@@ -14,12 +17,14 @@ const INDICATOR_SIZE := Vector2(72.0, 72.0)
 const MAX_VALUE := 1.2
 const SNAP_VALUE := 1.0
 const SNAP_THRESHOLD := 0.025
+const RIDGE_STEP := 0.05
 
 var _value: float = 0.8
 var _is_hovered: bool = false
 var _is_dragging: bool = false
 var _base_icon: TextureRect
 var _overlay_icon: TextureRect
+var _step_index: int = -1
 
 
 func _ready() -> void:
@@ -35,6 +40,7 @@ func _ready() -> void:
 
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+	_step_index = _get_step_index(_value)
 	_sync_indicator()
 
 
@@ -49,6 +55,12 @@ func set_slider_value(new_value: float, emit_signal: bool = false) -> void:
 		return
 
 	_value = clamped_value
+	var next_step_index := _get_step_index(_value)
+	if emit_signal and next_step_index != _step_index:
+		_step_index = next_step_index
+		step_crossed.emit()
+	else:
+		_step_index = next_step_index
 	_sync_indicator()
 	queue_redraw()
 
@@ -110,6 +122,7 @@ func _gui_input(event: InputEvent) -> void:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if mb.pressed:
+				interaction_started.emit()
 				_is_dragging = true
 				_update_from_local_x(mb.position.x)
 			else:
@@ -137,7 +150,12 @@ func _snap_slider_value(value: float) -> float:
 	return value
 
 
+func _get_step_index(value: float) -> int:
+	return int(roundf(value / RIDGE_STEP))
+
+
 func _on_mouse_entered() -> void:
+	hover_started.emit()
 	_is_hovered = true
 	_sync_indicator()
 

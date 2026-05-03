@@ -18,7 +18,11 @@ extends Node2D
 
 func _ready() -> void:
 	BackgroundManager.set_chapter(chapter)
+	BackgroundManager.set_menu_mode(false)
+	BackgroundManager.set_pause_mode(false)
 	BackgroundManager.set_state("idle", 1.2)
+	MusicManager.set_menu_mode(false)
+	MusicManager.set_pause_mode(false)
 	MusicManager.on_level_started()
 	CircleTransition.play_ring_open_from_target(
 		entry_ring_radius, entry_ring_hold, entry_phase1_duration, entry_phase2_duration)

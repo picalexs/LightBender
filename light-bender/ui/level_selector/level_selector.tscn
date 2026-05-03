@@ -5,7 +5,8 @@
 [ext_resource type="Shader" uid="uid://30w68dyurygc" path="res://features/background/background_menu.gdshader" id="3_bg_shader"]
 [ext_resource type="FontFile" uid="uid://dwttcgep1o3nx" path="res://assets/pixelfont.ttf" id="4_font"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu/pause_menu.tscn" id="5_pause_menu"]
-[ext_resource type="Texture2D" uid="uid://duwks8sj13qhm" path="res://assets/sprites/Reset_Button.png" id="6_reset_button"]
+[ext_resource type="Texture2D" uid="uid://dcr8881w3yl06" path="res://assets/sprites/Reset_Button.png" id="6_reset_button"]
+[ext_resource type="Texture2D" uid="uid://ytcjbcd4o4yn" path="res://assets/sprites/Small_Button.png" id="7_small_button"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
 shader = ExtResource("3_bg_shader")
@@ -53,30 +54,6 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_reset_normal"]
-texture = ExtResource("6_reset_button")
-texture_margin_left = 4.0
-texture_margin_top = 4.0
-texture_margin_right = 4.0
-texture_margin_bottom = 4.0
-modulate_color = Color(1, 1, 1, 1)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_reset_pressed"]
-texture = ExtResource("6_reset_button")
-texture_margin_left = 4.0
-texture_margin_top = 4.0
-texture_margin_right = 4.0
-texture_margin_bottom = 4.0
-modulate_color = Color(0.82, 0.82, 0.82, 1)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_reset_hover"]
-texture = ExtResource("6_reset_button")
-texture_margin_left = 4.0
-texture_margin_top = 4.0
-texture_margin_right = 4.0
-texture_margin_bottom = 4.0
-modulate_color = Color(1, 1, 1, 1)
 
 [node name="LevelSelector" type="Control" unique_id=1312055036]
 layout_mode = 3
@@ -229,24 +206,33 @@ theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ResetSaveButton" type="Button" parent="." unique_id=673323219]
-layout_mode = 0
+[node name="ResetSaveButton" type="TextureButton" parent="." unique_id=673323219]
+layout_mode = 1
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -64.0
-offset_top = -64.0
-offset_right = -16.0
-offset_bottom = -16.0
+offset_left = -78.0
+offset_top = -78.0
+offset_right = -14.0
+offset_bottom = -14.0
 grow_horizontal = 0
 grow_vertical = 0
 focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxTexture_reset_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_reset_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_reset_hover")
-theme_override_styles/focus = SubResource("StyleBoxTexture_reset_hover")
-text = ""
+texture_normal = ExtResource("7_small_button")
+stretch_mode = 0
+
+[node name="Icon" type="TextureRect" parent="ResetSaveButton"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 56.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture_filter = 0
+texture = ExtResource("6_reset_button")
+stretch_mode = 5
 
 [node name="PauseMenu" parent="." unique_id=248066764 instance=ExtResource("5_pause_menu")]
 is_in_level = false

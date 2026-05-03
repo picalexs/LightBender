@@ -10,51 +10,51 @@ const LEVELS: Array = [
 	# ── Chapter 1: Light ──────────────────────────────────────────────────────
 	{
 		"id": "ch1_l1", "name": "The Awakening",
-		"scene": "res://levels/demo_levels/level1.tscn",
+		"scene": "res://levels/chapter_1/level1.tscn",
 		"chapter": 1, "col": 0, "row": 0, "prerequisites": []
 	},
 	{
 		"id": "ch1_l2", "name": "First Shadows",
-		"scene": "res://levels/demo_levels/level2.tscn",
+		"scene": "res://levels/chapter_1/level2.tscn",
 		"chapter": 1, "col": 1, "row": 0, "prerequisites": ["ch1_l1"]
 	},
 	{
 		"id": "ch1_l3", "name": "Mirror Garden",
-		"scene": "res://levels/demo_levels/level3.tscn",
+		"scene": "res://levels/chapter_1/level3.tscn",
 		"chapter": 1, "col": 2, "row": 0, "prerequisites": ["ch1_l2"]
 	},
 	{
 		"id": "ch1_l4", "name": "Prism Falls",
-		"scene": "res://levels/demo_levels/level4.tscn",
+		"scene": "res://levels/chapter_1/level4.tscn",
 		"chapter": 1, "col": 3, "row": 0, "prerequisites": ["ch1_l3"]
 	},
 	{
 		"id": "ch1_l5", "name": "Eclipse Chamber",
-		"scene": "res://levels/demo_levels/level5.tscn",
+		"scene": "res://levels/chapter_1/level5.tscn",
 		"chapter": 1, "col": 4, "row": 0, "prerequisites": ["ch1_l4"]
 	},
 	{
 		"id": "ch1_l6", "name": "Radiant Depths",
-		"scene": "res://levels/demo_levels/level6.tscn",
+		"scene": "res://levels/chapter_1/level6.tscn",
 		"chapter": 1, "col": 5, "row": 0, "prerequisites": ["ch1_l5"]
 	},
 	{
 		"id": "ch1_l7", "name": "The Lighthouse",
-		"scene": "res://levels/demo_levels/level7.tscn",
+		"scene": "res://levels/chapter_1/level7.tscn",
 		"chapter": 1, "col": 6, "row": 0, "prerequisites": ["ch1_l6"]
 	},
 	# ── Chapter 2: Flow — add levels here as you build them ──────────────────
 	# Example:
 	# {
 	# 	"id": "ch2_l1", "name": "First Step",
-	# 	"scene": "res://levels/flow_levels/level1.tscn",
+	# 	"scene": "res://levels/chapter_2/level1.tscn",
 	# 	"chapter": 2, "col": 0, "row": 0, "prerequisites": []
 	# },
 	# ── Chapter 3: Convergence — needs last Ch1 + last Ch2 completed ─────────
 	# Example (set prerequisites to the final levels of both previous chapters):
 	# {
 	# 	"id": "ch3_l1", "name": "Merge Point",
-	# 	"scene": "res://levels/convergence_levels/level1.tscn",
+	# 	"scene": "res://levels/chapter_3/level1.tscn",
 	# 	"chapter": 3, "col": 0, "row": 0,
 	# 	"prerequisites": ["ch1_l7", "ch2_lX"]  # last of each chapter
 	# },
