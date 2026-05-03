@@ -34,7 +34,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.6666667),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [0.064577185, -0.22165681]
+"values": [0.06981317, -0.22165681]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_0dv7n"]
@@ -87,7 +87,7 @@ target_node = NodePath("../DarkManager/Node2D/LightZone2")
 libraries/ = SubResource("AnimationLibrary_0dv7n")
 
 [node name="Switch2" parent="." index="8" unique_id=94708712 node_paths=PackedStringArray("target_node") instance=ExtResource("4_a0isg")]
-position = Vector2(-18, -7)
+position = Vector2(12, -9)
 target_node = NodePath("../AnimationPlayer")
 method_when_on = "play"
 parameter_when_on = "light_movement"
