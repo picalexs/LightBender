@@ -9,7 +9,10 @@
 [node name="Player" parent="." index="0" unique_id=640300134]
 position = Vector2(-87, -21)
 
-[node name="LightZone" parent="DarkManager" parent_id_path=PackedInt32Array(1218959965) index="1" unique_id=1922344028 instance=ExtResource("2_w2j4k")]
+[node name="DarkManager" parent="." index="1" unique_id=1218959965]
+process_mode = 3
+
+[node name="LightZone" parent="DarkManager" index="1" unique_id=1922344028 instance=ExtResource("2_w2j4k")]
 position = Vector2(4, 52)
 polygon = PackedVector2Array(-62, -485, -303.99997, 191.99997, 320, 191.99997, 44, -482)
 is_on = true

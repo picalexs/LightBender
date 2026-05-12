@@ -32,6 +32,11 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/mode=3
 
+[editor]
+
+movie_writer/movie_file="C:/Users/Alex/Documents/Projects/PJ/Proiectarea_Jocurilor/light-bender/output.avi"
+movie_writer/disable_vsync=true
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot_ai_bridge/plugin.cfg")

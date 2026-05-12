@@ -27,6 +27,7 @@ metadata/_custom_type_script = "uid://cejnb7kcm0p3l"
 script = ExtResource("5_55oy2")
 event_name = "next_level"
 stream = ExtResource("7_55oy2")
+volume_db = -3.0
 pitch_scale = 0.9
 pitch_randomness = 0.2
 
@@ -64,17 +65,16 @@ texture = ExtResource("3_oe0de")
 [node name="SFX_emitter" type="Node2D" parent="." unique_id=2067834201]
 script = ExtResource("4_h1vtk")
 clips = [SubResource("Resource_g1432"), SubResource("SfxClip_next_level")]
-bus_name = "SFX"
 
 [node name="Node_SFX_Controller" type="Node2D" parent="." unique_id=495456138]
 script = ExtResource("7_putx2")
 target_path = NodePath("..")
 emitter_path = NodePath("../SFX_emitter")
-bindings = Array[ExtResource("8_t1cpt")]([SubResource("Resource_gdbgr"), SubResource("SfxBinding_next_level")])
+bindings = [SubResource("Resource_gdbgr"), SubResource("SfxBinding_next_level")]
 
-[node name="LightReactive" type="Area2D" parent="." unique_id=9999999997]
+[node name="LightReactive" type="Area2D" parent="." unique_id=1410065405]
 script = ExtResource("9_ltrct")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="LightReactive" unique_id=9999999996]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LightReactive" unique_id=1410065404]
 position = Vector2(0, -2)
 shape = SubResource("RectangleShape2D_eahuo")
