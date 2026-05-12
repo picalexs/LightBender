@@ -6,7 +6,6 @@ signal jump_performed(kind: StringName)
 signal dash_performed
 signal wall_slide_state_changed(is_sliding: bool)
 
-# ── Movement ──────────────────────────────────────────────────────────────────
 @export_group("Movement")
 @export var move_speed: float = 160.0
 @export var acceleration: float = 18.0
@@ -17,7 +16,6 @@ signal wall_slide_state_changed(is_sliding: bool)
 @export var friction: float = 1.0
 @export var conserve_momentum: bool = true
 
-# ── Jump ──────────────────────────────────────────────────────────────────────
 @export_group("Jump")
 @export var jump_force: float = 300.0
 @export_range(0.0, 1.0) var jump_cut_mult: float = 0.15
@@ -26,18 +24,15 @@ signal wall_slide_state_changed(is_sliding: bool)
 @export var max_air_jumps: int = 1
 @export var double_jump_force: float = 280.0
 
-# ── Slow Fall ────────────────────────────────────────────────────────────────
 @export_group("Slow Fall")
 @export var slow_fall_gravity_mult: float = 0.32
 @export var slow_fall_max_speed: float = 70.0
 
-# ── Apex Feel ─────────────────────────────────────────────────────────────────
 @export_group("Jump Feel")
 @export var jump_hang_threshold: float = 15.0
 @export var jump_hang_accel_mult: float = 4.0
 @export var jump_hang_gravity_mult: float = 0.3
 
-# ── Gravity ───────────────────────────────────────────────────────────────────
 @export_group("Gravity")
 @export var gravity_mult: float = 1.0
 @export var fall_gravity_mult: float = 1.7
@@ -45,11 +40,9 @@ signal wall_slide_state_changed(is_sliding: bool)
 @export var max_fall_speed: float = 240.0
 @export var max_fast_fall_speed: float = 400.0
 
-# ── Abilities ─────────────────────────────────────────────────────────────────
 @export_group("Abilities")
 @export var abilities: PlayerAbilities
 
-# ── Dash ──────────────────────────────────────────────────────────────────────
 @export_group("Dash")
 @export var dash_speed: float = 360.0
 @export var dash_duration: float = 0.16
@@ -58,7 +51,6 @@ signal wall_slide_state_changed(is_sliding: bool)
 @export var dash_end_speed_mult: float = 0.6
 @export var enable_dash_trail: bool = true
 
-# ── Wall Movement ─────────────────────────────────────────────────────────────
 @export_group("Wall Movement")
 @export var wall_slide_speed: float = 28.0
 @export var wall_slide_accel: float = 900.0
@@ -67,7 +59,6 @@ signal wall_slide_state_changed(is_sliding: bool)
 @export var wall_jump_lock_time: float = 0.12
 @export var wall_probe_distance: float = 2.0
 
-# ── Private state ─────────────────────────────────────────────────────────────
 var _facing_right: bool = true
 var _is_jumping: bool = false
 var _coyote_timer: float = 0.0
@@ -85,23 +76,77 @@ var _was_wall_sliding: bool = false
 @onready var _trail_effect = get_node_or_null("TrailEffect")
 
 @onready var safety_scanner = $SafetyScanner
+@onready var _light_receiver: LightReceiver = get_node_or_null("LightReceiver") as LightReceiver
 var is_in_light: bool = false
 var active_light_zones: int = 0
+var _anonymous_light_zone_count: int = 0
+var _light_zone_sources: Array[Node] = []
 
 func add_light_zone():
-	active_light_zones += 1
-	is_in_light = true 
-	# As long as we are in at least 1 zone, the floor is solid
-	#set_collision_mask_value(1, true)
+	if _light_receiver != null:
+		_light_receiver.add_light_zone()
+		return
+	_anonymous_light_zone_count += 1
+	_refresh_light_state()
 
 func remove_light_zone():
-	active_light_zones -= 1
-	
-	# Only disable the floor if we have left EVERY light zone
-	if active_light_zones <= 0:
-		active_light_zones = 0 # Failsafe to prevent negative numbers
-		is_in_light = false
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone()
+		return
+	_anonymous_light_zone_count = maxi(_anonymous_light_zone_count - 1, 0)
+	_refresh_light_state()
+
+func add_light_zone_from(zone: Node):
+	if _light_receiver != null:
+		_light_receiver.add_light_zone_from(zone)
+		return
+	_prune_light_zone_sources()
+	if zone == null:
+		add_light_zone()
+		return
+	if not _light_zone_sources.has(zone):
+		_light_zone_sources.append(zone)
+	_refresh_light_state()
+
+func remove_light_zone_from(zone: Node):
+	if _light_receiver != null:
+		_light_receiver.remove_light_zone_from(zone)
+		return
+	if zone == null:
+		remove_light_zone()
+		return
+	_light_zone_sources.erase(zone)
+	_refresh_light_state()
+
+func is_in_light_excluding_zone(excluded_zone: Node) -> bool:
+	if _light_receiver != null:
+		return _light_receiver.is_in_light_excluding_zone(excluded_zone)
+	_prune_light_zone_sources()
+	if _anonymous_light_zone_count > 0:
+		return true
+	for zone in _light_zone_sources:
+		if zone != excluded_zone:
+			return true
+	return false
+
+func _refresh_light_state() -> void:
+	if _light_receiver != null:
+		_light_receiver.refresh_light_state()
+		active_light_zones = _light_receiver.active_light_zones
+		is_in_light = _light_receiver.is_in_light
+		if not is_in_light:
+			set_collision_mask_value(1, false)
+		return
+	_prune_light_zone_sources()
+	active_light_zones = _anonymous_light_zone_count + _light_zone_sources.size()
+	is_in_light = active_light_zones > 0
+	if not is_in_light:
 		set_collision_mask_value(1, false)
+
+func _prune_light_zone_sources() -> void:
+	for i in range(_light_zone_sources.size() - 1, -1, -1):
+		if not is_instance_valid(_light_zone_sources[i]):
+			_light_zone_sources.remove_at(i)
 
 func _re_enter_light():
 	if is_in_light and not get_collision_mask_value(1):
@@ -114,9 +159,18 @@ func _snap_to_checkpoint():
 
 func _ready() -> void:
 	_ensure_abilities()
+	if _light_receiver != null:
+		_light_receiver.light_state_changed.connect(_on_light_receiver_state_changed)
+		_refresh_light_state()
 	_refill_air_jumps()
 	_update_dash_trail_state()
-	#snap_to_checkpoint()
+
+
+func _on_light_receiver_state_changed(now_in_light: bool) -> void:
+	is_in_light = now_in_light
+	active_light_zones = _light_receiver.active_light_zones if _light_receiver != null else active_light_zones
+	if not is_in_light:
+		set_collision_mask_value(1, false)
 
 
 func _ensure_abilities() -> void:
@@ -139,7 +193,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_slow_fall_armed = false
 
 func _physics_process(delta: float) -> void:
-	# Try to re-enter lightzone 
 	_re_enter_light()
 	
 	var was_dashing := _is_dashing()
@@ -171,8 +224,6 @@ func _physics_process(delta: float) -> void:
 		_slow_fall_armed = false
 		
 
-
-# Counts down coyote window and jump buffer each frame; resets coyote on landing.
 func _tick_timers(delta: float, on_floor: bool) -> void:
 	_coyote_timer = coyote_time if on_floor else _coyote_timer - delta
 	_jump_buffer_timer -= delta
@@ -181,7 +232,6 @@ func _tick_timers(delta: float, on_floor: bool) -> void:
 	_wall_jump_lock_timer = maxf(0.0, _wall_jump_lock_timer - delta)
 
 
-# Scales gravity based on movement phase: apex hang, fast fall, normal fall, or grounded.
 func _apply_gravity(delta: float, on_floor: bool) -> void:
 	if on_floor or _is_dashing():
 		return
@@ -206,9 +256,7 @@ func _apply_gravity(delta: float, on_floor: bool) -> void:
 	velocity += get_gravity() * g_mult * delta
 
 
-# Fires a jump when both the input buffer and the coyote window are active.
 func _try_jump() -> void:
-	# Jump can only happen after a real jump press
 	if _jump_buffer_timer <= 0.0:
 		return
 
@@ -225,7 +273,7 @@ func _try_jump() -> void:
 
 
 func _do_ground_jump() -> void:
-	velocity.y = -jump_force
+	velocity.y = - jump_force
 	_is_jumping = true
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
@@ -242,7 +290,7 @@ func _do_wall_jump() -> void:
 		jump_normal_x = -1.0 if _facing_right else 1.0
 
 	velocity.x = jump_normal_x * wall_jump_horizontal_force
-	velocity.y = -wall_jump_force
+	velocity.y = - wall_jump_force
 	_is_jumping = true
 	_wall_jump_lock_timer = wall_jump_lock_time
 	_coyote_timer = 0.0
@@ -251,7 +299,7 @@ func _do_wall_jump() -> void:
 
 
 func _do_double_jump() -> void:
-	velocity.y = -double_jump_force
+	velocity.y = - double_jump_force
 	_is_jumping = true
 	_jump_buffer_timer = 0.0
 	_air_jumps_left = max(0, _air_jumps_left - 1)
@@ -261,7 +309,6 @@ func _do_double_jump() -> void:
 		_is_jumping = false
 
 
-# Physics-based acceleration / deceleration with optional momentum conservation and friction.
 func _apply_movement(delta: float, on_floor: bool) -> void:
 	if _is_dashing():
 		return
@@ -486,6 +533,9 @@ func _update_facing() -> void:
 	elif dir < 0.0 and _facing_right:
 		_flip()
 
+
+func get_facing_direction() -> float:
+	return 1.0 if _facing_right else -1.0
 
 func _flip() -> void:
 	_facing_right = not _facing_right

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dr75owwinhopm"
+path="res://.godot/imported/juanjo_sound_Nineties Nostalgia.wav-05e9c61d59c740b2b4d7b9b1832b3e1b.sample"
+
+[deps]
+
+source_file="res://assets/audio/music/juanjo_sound_Nineties Nostalgia.wav"
+dest_files=["res://.godot/imported/juanjo_sound_Nineties Nostalgia.wav-05e9c61d59c740b2b4d7b9b1832b3e1b.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=true
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

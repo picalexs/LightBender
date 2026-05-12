@@ -9,7 +9,10 @@
 [ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="7_sfx_clip"]
 [ext_resource type="AudioStream" uid="uid://bfd5hk81lc2t5" path="res://assets/audio/jump.wav" id="8_jump_sfx"]
 [ext_resource type="AudioStream" uid="uid://bf6p51nsfvxn" path="res://assets/audio/dash.wav" id="9_dash_sfx"]
+[ext_resource type="AudioStream" uid="uid://d2epburahmane" path="res://assets/audio/death_1.wav" id="10_5rlqq"]
 [ext_resource type="Script" uid="uid://dtbahbfvrv3wf" path="res://features/audio/player_sfx_controller.gd" id="10_player_sfx_controller"]
+[ext_resource type="Script" uid="uid://cmswv2ga2v2bx" path="res://features/player/player_pickup_controller.gd" id="11_pckup"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="12_light_receiver"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fcb3x"]
 radius = 7.9
@@ -20,7 +23,7 @@ script = ExtResource("7_sfx_clip")
 event_name = "jump"
 stream = ExtResource("8_jump_sfx")
 volume_db = -7.0
-pitch_randomness = 0.05
+pitch_randomness = 0.1
 
 [sub_resource type="Resource" id="SfxClip_dash"]
 script = ExtResource("7_sfx_clip")
@@ -28,7 +31,7 @@ event_name = "dash"
 stream = ExtResource("9_dash_sfx")
 volume_db = -6.0
 pitch_scale = 0.96
-pitch_randomness = 0.04
+pitch_randomness = 0.05
 retrigger_cooldown = 0.04
 
 [sub_resource type="Resource" id="SfxClip_double_jump"]
@@ -43,6 +46,7 @@ script = ExtResource("7_sfx_clip")
 event_name = "wall_jump"
 stream = ExtResource("8_jump_sfx")
 volume_db = -7.0
+pitch_randomness = 0.05
 
 [sub_resource type="Resource" id="SfxClip_wall_slide_loop"]
 script = ExtResource("7_sfx_clip")
@@ -50,12 +54,24 @@ event_name = "wall_slide_loop"
 volume_db = -12.0
 loop = true
 
+[sub_resource type="Resource" id="SfxClip_death"]
+script = ExtResource("7_sfx_clip")
+event_name = "death"
+stream = ExtResource("10_5rlqq")
+volume_db = 10.0
+pitch_scale = 0.8
+pitch_randomness = 0.15
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_47rrt"]
 size = Vector2(12, 5)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pu"]
+radius = 48.0
 
 [node name="Player" type="CharacterBody2D" unique_id=640300134]
 z_index = 5
 collision_layer = 2
+collision_mask = 5
 script = ExtResource("1_fcb3x")
 abilities = ExtResource("4_abilities")
 
@@ -65,6 +81,13 @@ texture = ExtResource("2_fcb3x")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=280012028]
 position = Vector2(0, 0.1)
 shape = SubResource("CapsuleShape2D_fcb3x")
+
+[node name="LightReceiver" type="Area2D" parent="." unique_id=194004271]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("12_light_receiver")
+auto_refresh = true
+dim_when_dark = false
 
 [node name="SquashStretch" type="Node" parent="." unique_id=1382942515]
 script = ExtResource("3_squash")
@@ -78,7 +101,8 @@ ghost_alpha = 0.3
 
 [node name="SfxEmitter" type="Node2D" parent="." unique_id=556102516]
 script = ExtResource("6_sfx_emitter")
-clips = [SubResource("SfxClip_jump"), SubResource("SfxClip_dash"), SubResource("SfxClip_double_jump"), SubResource("SfxClip_wall_jump"), SubResource("SfxClip_wall_slide_loop")]
+clips = [SubResource("SfxClip_jump"), SubResource("SfxClip_dash"), SubResource("SfxClip_double_jump"), SubResource("SfxClip_wall_jump"), SubResource("SfxClip_wall_slide_loop"), SubResource("SfxClip_death")]
+bus_name = "SFX"
 max_polyphony = 8
 
 [node name="PlayerSfxController" type="Node" parent="." unique_id=1928668172]
@@ -90,3 +114,11 @@ collision_layer = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SafetyScanner" unique_id=2044314949]
 position = Vector2(0, -2.5)
 shape = SubResource("RectangleShape2D_47rrt")
+
+[node name="PickupController" type="Area2D" parent="." unique_id=321654987]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("11_pckup")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupController" unique_id=123456789]
+shape = SubResource("CircleShape2D_pu")

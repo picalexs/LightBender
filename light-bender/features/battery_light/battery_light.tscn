@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://bhg47o5do46cv"]
+
+[ext_resource type="Script" uid="uid://wfi7se85awwn" path="res://features/battery_light/battery_light.gd" id="1_battery"]
+[ext_resource type="PackedScene" uid="uid://dtck6el73j4rm" path="res://features/lightzone/light_zone.tscn" id="2_light_zone"]
+[ext_resource type="Texture2D" uid="uid://d3cv8jao4rd3c" path="res://assets/sprites/Battery_ON.png" id="3_battery_on"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="4_light_receiver"]
+[ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="5_rb06v"]
+[ext_resource type="Script" path="res://features/interact_prompt/pickup_prompt_area.gd" id="6_prompt_area"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_battery"]
+radius = 8.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_prompt"]
+radius = 48.0
+
+[node name="BatteryLight" type="RigidBody2D" unique_id=303039726]
+z_index = 5
+collision_layer = 4
+gravity_scale = 0.0
+lock_rotation = true
+linear_damp = 12.0
+angular_damp = 12.0
+script = ExtResource("1_battery")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=183039457]
+shape = SubResource("CircleShape2D_battery")
+
+[node name="LightReceiver" type="Area2D" parent="." unique_id=151338857]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_light_receiver")
+auto_refresh = true
+dim_when_dark = false
+
+[node name="VisualSprite" type="Sprite2D" parent="." unique_id=1341722930]
+texture = ExtResource("3_battery_on")
+
+[node name="DischargeLight" parent="." unique_id=1511918481 instance=ExtResource("2_light_zone")]
+is_on = false
+core_scale = 0.72
+trigger_scale = 0.72
+core_alpha = 0.72
+penumbra_size = 100.0
+penumbra_steps = 8
+safe_zone_extra = 0.0
+
+[node name="PromptArea" type="Area2D" parent="." unique_id=1750011001]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("6_prompt_area")
+
+[node name="InteractPrompt" parent="." unique_id=322261283 instance=ExtResource("5_rb06v")]
+offset_left = 6.0
+offset_top = -27.0
+offset_right = 7.0
+offset_bottom = -4.0
+action_name = "lb_pickup"
+bind_area_path = NodePath("../PromptArea")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PromptArea" unique_id=1750011002]
+shape = SubResource("CircleShape2D_prompt")

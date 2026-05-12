@@ -3,6 +3,7 @@ extends Node
 @export_group("References")
 @export var movement_path: NodePath = NodePath("..")
 @export var emitter_path: NodePath = NodePath("../SfxEmitter")
+@export var respawn_path: NodePath
 
 @export_group("Events")
 @export var enable_sfx: bool = true
@@ -11,6 +12,7 @@ extends Node
 @export var double_jump_event: String = "double_jump"
 @export var wall_jump_event: String = "wall_jump"
 @export var wall_slide_loop_event: String = "wall_slide_loop"
+@export var death_event: String = "death"
 
 var _movement: Node
 var _emitter: Node
@@ -20,10 +22,25 @@ func _ready() -> void:
 	_movement = get_node_or_null(movement_path)
 	_emitter = get_node_or_null(emitter_path)
 	_connect_movement_signals()
+	_connect_respawn_signals()
 
 
 func _exit_tree() -> void:
 	_stop_event(wall_slide_loop_event)
+
+
+func _connect_respawn_signals() -> void:
+	var respawn := _resolve_respawn_node()
+	if respawn == null:
+		return
+	if respawn.has_signal("respawn_requested"):
+		respawn.respawn_requested.connect(_on_respawn_requested)
+
+
+func _on_respawn_requested(_source: StringName) -> void:
+	if not enable_sfx:
+		return
+	_play_event(death_event)
 
 
 func _connect_movement_signals() -> void:
@@ -97,3 +114,24 @@ func _stop_event(event_name: String) -> void:
 		return
 	if _emitter.has_method("stop_event"):
 		_emitter.stop_event(event_name)
+
+
+func _resolve_respawn_node() -> Node:
+	if not respawn_path.is_empty():
+		return get_node_or_null(respawn_path)
+
+	var candidates: Array[NodePath] = [
+		NodePath("../../RespawnController"),
+		NodePath("../RespawnController"),
+		NodePath("/root/BaseLevel/RespawnController"),
+	]
+	for candidate_path in candidates:
+		var candidate := get_node_or_null(candidate_path)
+		if candidate != null:
+			return candidate
+
+	var current_scene := get_tree().current_scene
+	if current_scene != null:
+		return current_scene.find_child("RespawnController", true, false)
+
+	return null

@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" uid="uid://cysuppjvuw1wv" path="res://features/darkmanager/dark_manager.tscn" id="2_46036"]
 [ext_resource type="PackedScene" uid="uid://brtr2cyku4f44" path="res://assets/tilemaps/tile_map_layer.tscn" id="3_maq6b"]
 [ext_resource type="Script" uid="uid://bqpuml7s3dshn" path="res://features/respawn/respawn_controller.gd" id="4_0rg8l"]
-[ext_resource type="PackedScene" path="res://features/transition/circle_transition.tscn" id="5_6w4ab"]
 
 [node name="BaseLevel" type="Node2D" unique_id=506907771]
 script = ExtResource("1_46036")
@@ -18,9 +17,6 @@ script = ExtResource("1_46036")
 
 [node name="RespawnController" type="Node" parent="." unique_id=1286864562]
 script = ExtResource("4_0rg8l")
-transition_path = NodePath("CircleTransition")
-
-[node name="CircleTransition" parent="RespawnController" unique_id=1146401117 instance=ExtResource("5_6w4ab")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1800407760]
 zoom = Vector2(2.41, 2.41)

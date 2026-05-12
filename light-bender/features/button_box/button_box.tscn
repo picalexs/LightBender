@@ -1,0 +1,80 @@
+[gd_scene load_steps=10 format=3 uid="uid://dg6fcjlwmxjxe"]
+
+[ext_resource type="Script" path="res://features/button_box/button_box.gd" id="1_button"]
+[ext_resource type="Texture2D" path="res://assets/sprites/Button_Box_OFF.png" id="2_button_box_off"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="3_light_receiver"]
+[ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="4_prompt"]
+[ext_resource type="Script" path="res://features/interact_prompt/pickup_prompt_area.gd" id="5_prompt_area"]
+[ext_resource type="Script" uid="uid://qf78bcne6cy1" path="res://features/audio/sfx_emitter_2d.gd" id="6_sfxem"]
+[ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="7_sfxclip"]
+[ext_resource type="AudioStream" uid="uid://n0cd816itax3" path="res://assets/audio/switch.wav" id="8_swsnd"]
+[ext_resource type="Script" uid="uid://ckxtm8u8eyyu6" path="res://features/audio/node_sfx_controller.gd" id="9_sfxctrl"]
+[ext_resource type="Script" uid="uid://b0bxvxbw300t4" path="res://features/audio/sfx_signal_binding.gd" id="10_sfxbnd"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_button"]
+size = Vector2(16, 16)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_prompt_button"]
+radius = 48.0
+
+[sub_resource type="Resource" id="SfxClip_switch"]
+script = ExtResource("7_sfxclip")
+event_name = "switch"
+stream = ExtResource("8_swsnd")
+pitch_randomness = 0.05
+
+[sub_resource type="Resource" id="SfxBinding_switch"]
+script = ExtResource("10_sfxbnd")
+signal_name = "toggled"
+event_name = "switch"
+arg_count = 1
+
+[node name="ButtonBox" type="RigidBody2D"]
+z_index = 5
+collision_layer = 4
+collision_mask = 1
+gravity_scale = 0.0
+lock_rotation = true
+linear_damp = 12.0
+angular_damp = 12.0
+script = ExtResource("1_button")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_button")
+
+[node name="LightReceiver" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("3_light_receiver")
+auto_refresh = true
+dim_when_dark = false
+
+[node name="VisualSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_button_box_off")
+
+[node name="SfxEmitter" type="Node2D" parent="."]
+script = ExtResource("6_sfxem")
+clips = [SubResource("SfxClip_switch")]
+bus_name = "SFX"
+
+[node name="NodeSfxController" type="Node" parent="."]
+script = ExtResource("9_sfxctrl")
+target_path = NodePath("..")
+emitter_path = NodePath("../SfxEmitter")
+bindings = Array[ExtResource("10_sfxbnd")]([SubResource("SfxBinding_switch")])
+
+[node name="PromptArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_prompt_area")
+
+[node name="InteractPrompt" parent="." instance=ExtResource("4_prompt")]
+offset_left = 6.0
+offset_top = -27.0
+offset_right = 7.0
+offset_bottom = -4.0
+action_name = "lb_pickup"
+bind_area_path = NodePath("../PromptArea")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PromptArea"]
+shape = SubResource("CircleShape2D_prompt_button")

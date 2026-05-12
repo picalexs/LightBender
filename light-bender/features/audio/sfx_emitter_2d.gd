@@ -2,7 +2,7 @@ extends Node2D
 
 @export_group("Library")
 @export var clips: Array = []
-@export var bus_name: String = "Master"
+@export var bus_name: String = "SFX"
 
 @export_group("Playback")
 @export var max_polyphony: int = 6
@@ -53,6 +53,23 @@ func play_event(event_name: String) -> bool:
 	return true
 
 
+func play_stream(stream: AudioStream, volume_db: float = 0.0, pitch_scale: float = 1.0) -> bool:
+	if stream == null:
+		return false
+
+	var player := _acquire_one_shot_player()
+	if player == null:
+		return false
+
+	player.bus = bus_name
+	player.volume_db = volume_db
+	player.pitch_scale = maxf(0.01, pitch_scale)
+	player.position = Vector2.ZERO
+	player.stream = stream
+	player.play()
+	return true
+
+
 func start_event_loop(event_name: String) -> bool:
 	if event_name == "":
 		return false
@@ -74,6 +91,35 @@ func stop_event(event_name: String) -> void:
 		player.stop()
 		player.queue_free()
 	_loop_players.erase(event_name)
+
+
+func play_event_persistent(event_name: String) -> bool:
+	if event_name == "":
+		return false
+
+	var clip = _get_clip(event_name)
+	if clip == null:
+		return false
+
+	var stream = clip.get("stream")
+	if stream == null:
+		return false
+
+	var player := AudioStreamPlayer.new()
+	player.stream = stream
+	player.bus = bus_name
+	player.volume_db = float(clip.get("volume_db") if clip.get("volume_db") != null else 0.0)
+
+	var base_pitch := float(clip.get("pitch_scale") if clip.get("pitch_scale") != null else 1.0)
+	var randomness: float = max(0.0, float(clip.get("pitch_randomness") if clip.get("pitch_randomness") != null else 0.0))
+	if randomness > 0.0:
+		base_pitch += randf_range(-randomness, randomness)
+	player.pitch_scale = max(0.01, base_pitch)
+
+	get_tree().root.add_child(player)
+	player.play()
+	player.finished.connect(player.queue_free)
+	return true
 
 
 func stop_all_events() -> void:
@@ -100,6 +146,9 @@ func _exit_tree() -> void:
 
 func _sanitize_configuration() -> void:
 	max_polyphony = max(1, max_polyphony)
+	if AudioServer.get_bus_index(bus_name) < 0:
+		push_warning("SfxEmitter2D: audio bus '%s' was not found, falling back to Master" % bus_name)
+		bus_name = "Master"
 
 
 func _rebuild_clip_lookup() -> void:

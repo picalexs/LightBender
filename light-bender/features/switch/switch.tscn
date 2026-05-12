@@ -2,21 +2,60 @@
 
 [ext_resource type="Script" uid="uid://dx0c3o7g4pf1f" path="res://features/switch/switch.gd" id="1_8c5r1"]
 [ext_resource type="PackedScene" uid="uid://5fal6uvdam6w" path="res://features/interact_prompt/interact_prompt.tscn" id="2_3o34t"]
+[ext_resource type="Script" uid="uid://qf78bcne6cy1" path="res://features/audio/sfx_emitter_2d.gd" id="3_sfxem"]
+[ext_resource type="Script" uid="uid://cejnb7kcm0p3l" path="res://features/audio/sfx_clip.gd" id="4_sfxclip"]
+[ext_resource type="AudioStream" uid="uid://n0cd816itax3" path="res://assets/audio/switch.wav" id="5_swsnd"]
+[ext_resource type="Script" uid="uid://ckxtm8u8eyyu6" path="res://features/audio/node_sfx_controller.gd" id="6_sfxctrl"]
+[ext_resource type="Script" uid="uid://b0bxvxbw300t4" path="res://features/audio/sfx_signal_binding.gd" id="7_sfxbnd"]
+[ext_resource type="Script" path="res://features/shared/light_reactive.gd" id="8_ltrct"]
+[ext_resource type="Texture2D" uid="uid://daerw46gnokss" path="res://assets/sprites/Switch_OFF.png" id="9_switch_off"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_emybh"]
+
+[sub_resource type="Resource" id="SfxClip_switch"]
+script = ExtResource("4_sfxclip")
+event_name = "switch"
+stream = ExtResource("5_swsnd")
+pitch_randomness = 0.05
+
+[sub_resource type="Resource" id="SfxBinding_switch"]
+script = ExtResource("7_sfxbnd")
+signal_name = "toggled"
+event_name = "switch"
+arg_count = 1
 
 [node name="Switch" type="Area2D" unique_id=1171742787]
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("1_8c5r1")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=670111073]
-offset_left = -4.0
-offset_top = -4.0
-offset_right = 4.0
-offset_bottom = 4.0
+[node name="VisualSprite" type="Sprite2D" parent="." unique_id=670111073]
+scale = Vector2(2, 2)
+texture = ExtResource("9_switch_off")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1176049424]
 shape = SubResource("RectangleShape2D_emybh")
 
+[node name="SfxEmitter" type="Node2D" parent="." unique_id=301847562]
+script = ExtResource("3_sfxem")
+clips = [SubResource("SfxClip_switch")]
+bus_name = "SFX"
+
+[node name="NodeSfxController" type="Node" parent="." unique_id=301847563]
+script = ExtResource("6_sfxctrl")
+target_path = NodePath("..")
+emitter_path = NodePath("../SfxEmitter")
+bindings = Array[ExtResource("7_sfxbnd")]([SubResource("SfxBinding_switch")])
+
 [node name="InteractPrompt" parent="." unique_id=1592192165 instance=ExtResource("2_3o34t")]
+offset_left = 6.0
+offset_top = -27.0
+offset_right = 7.0
+offset_bottom = -4.0
+
+[node name="LightReactive" type="Area2D" parent="." unique_id=1410065407]
+script = ExtResource("8_ltrct")
+dim_when_dark = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LightReactive" unique_id=1410065406]
+shape = SubResource("RectangleShape2D_emybh")
